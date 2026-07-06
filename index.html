@@ -19,7 +19,544 @@
     --paper:#EEF4EF;
     --card:#FFFFFF;
     --muted:#54685E;
+    --line:#D8E4DC;<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoneyMentor — Investing, minus the jargon</title>
+<meta name="description" content="MoneyMentor helps young Singaporeans learn the basics of investing in plain language, grounded in trusted sources like MAS, CPF and MoneySense.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0C1F17;
+    --forest:#0E6E52;
+    --forest-deep:#0A4F3B;
+    --mint:#7BE6A8;
+    --mint-soft:#CBF2DA;
+    --amber:#F4A259;
+    --paper:#EEF4EF;
+    --card:#FFFFFF;
+    --muted:#54685E;
     --line:#D8E4DC;
+    --display:'Bricolage Grotesque',system-ui,sans-serif;
+    --body:'Inter',system-ui,sans-serif;
+    --mono:'Space Mono',ui-monospace,monospace;
+    --wrap:1120px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+  body{
+    font-family:var(--body);
+    color:var(--ink);
+    background:var(--paper);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:var(--wrap);margin:0 auto;padding:0 24px}
+  a{color:inherit;text-decoration:none}
+  h1,h2,h3{font-family:var(--display);line-height:1.05;letter-spacing:-.02em;font-weight:700}
+  .eyebrow{
+    font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--forest);display:inline-flex;align-items:center;gap:.5em;
+  }
+  .eyebrow::before{content:"";width:22px;height:1px;background:var(--forest);display:inline-block}
+
+  /* ---------- NAV ---------- */
+  header.nav{
+    position:sticky;top:0;z-index:50;
+    background:rgba(238,244,239,.82);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav .wrap{display:flex;align-items:center;justify-content:space-between;height:66px}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:1.22rem;letter-spacing:-.02em}
+  .mark{width:30px;height:30px;flex:none}
+  .nav-links{display:flex;align-items:center;gap:30px}
+  .nav-links a{font-size:.93rem;font-weight:500;color:var(--muted);transition:color .15s}
+  .nav-links a:hover{color:var(--ink)}
+  .btn{
+    font-family:var(--body);font-weight:600;font-size:.92rem;cursor:pointer;border:none;
+    padding:11px 20px;border-radius:999px;transition:transform .15s, box-shadow .15s, background .15s;
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .btn-primary{background:var(--forest);color:#fff;box-shadow:0 6px 18px -6px rgba(14,110,82,.6)}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 24px -8px rgba(14,110,82,.65)}
+  .btn-ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+  .btn-ghost:hover{border-color:var(--forest);color:var(--forest)}
+  .nav-toggle{display:none;background:none;border:none;cursor:pointer;padding:6px}
+  .nav-toggle span{display:block;width:22px;height:2px;background:var(--ink);margin:4px 0;border-radius:2px;transition:.2s}
+
+  /* ---------- HERO ---------- */
+  .hero{padding:70px 0 60px;position:relative;overflow:hidden}
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:54px;align-items:center}
+  .hero h1{font-size:clamp(2.5rem,5.4vw,4rem);font-weight:800}
+  .hero h1 .u{
+    background:linear-gradient(transparent 62%, var(--mint) 62%);padding:0 .05em;
+  }
+  .hero p.lead{font-size:1.14rem;color:var(--muted);margin:22px 0 30px;max-width:30em}
+  .hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+  .hero-note{margin-top:24px;font-family:var(--mono);font-size:.74rem;color:var(--muted);letter-spacing:.02em}
+  .hero-note b{color:var(--forest-deep)}
+
+  /* ---------- CHAT DEMO ---------- */
+  .demo{
+    background:var(--card);border:1px solid var(--line);border-radius:22px;
+    box-shadow:0 30px 60px -30px rgba(12,31,23,.35);overflow:hidden;
+  }
+  .demo-top{
+    display:flex;align-items:center;gap:11px;padding:15px 18px;border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#fff, #F6FBF7);
+  }
+  .demo-dot{width:34px;height:34px;border-radius:50%;background:var(--forest);display:grid;place-items:center;flex:none}
+  .demo-top .who{font-family:var(--display);font-weight:700;font-size:.98rem}
+  .demo-top .st{font-size:.72rem;color:var(--forest);display:flex;align-items:center;gap:5px}
+  .demo-top .st::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--mint);display:inline-block;box-shadow:0 0 0 3px rgba(124,233,156,.3)}
+  .stream{padding:18px;height:322px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
+  .bubble{max-width:82%;padding:11px 15px;border-radius:16px;font-size:.92rem;animation:pop .28s ease}
+  @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .bubble.user{align-self:flex-end;background:var(--forest);color:#fff;border-bottom-right-radius:5px}
+  .bubble.bot{align-self:flex-start;background:#F0F5F1;color:var(--ink);border-bottom-left-radius:5px}
+  .src{align-self:flex-start;font-family:var(--mono);font-size:.68rem;color:var(--muted);margin-top:-4px;padding-left:4px}
+  .src b{color:var(--forest-deep)}
+  .typing{display:inline-flex;gap:4px;align-items:center}
+  .typing i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:blink 1.2s infinite}
+  .typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,60%,100%{opacity:.25}30%{opacity:1}}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px;border-top:1px solid var(--line);background:#FbFdFb}
+  .chip{
+    font-family:var(--body);font-size:.82rem;font-weight:500;cursor:pointer;
+    background:#fff;border:1.5px solid var(--line);color:var(--ink);
+    padding:8px 13px;border-radius:999px;transition:.15s;
+  }
+  .chip:hover{border-color:var(--forest);color:var(--forest);transform:translateY(-1px)}
+  .chip:disabled{opacity:.4;cursor:default;transform:none}
+
+  /* ---------- SECTION SHELL ---------- */
+  .section{padding:78px 0;border-top:1px solid var(--line)}
+  .section-head{max-width:34em;margin-bottom:46px}
+  .section-head h2{font-size:clamp(1.8rem,3.4vw,2.6rem);margin:14px 0 12px}
+  .section-head p{color:var(--muted);font-size:1.05rem}
+
+  /* ---------- WHY ---------- */
+  .why-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .why-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px}
+  .why-card h3{font-size:1.2rem;margin-bottom:8px}
+  .why-card p{color:var(--muted);font-size:.96rem}
+  .why-card .ic{font-size:1.5rem;margin-bottom:14px;display:block}
+
+  /* ---------- HOW (steps) ---------- */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;counter-reset:s}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:28px;position:relative}
+  .step .num{font-family:var(--mono);font-weight:700;color:var(--forest);font-size:.9rem;letter-spacing:.1em}
+  .step h3{font-size:1.18rem;margin:12px 0 8px}
+  .step p{color:var(--muted);font-size:.94rem}
+  .step .arw{position:absolute;right:-14px;top:50%;color:var(--mint);font-size:1.4rem;z-index:2}
+  .step:last-child .arw{display:none}
+
+  /* ---------- LEARN (topics) ---------- */
+  .topics{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .topic{
+    background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;
+    transition:transform .18s, box-shadow .18s, border-color .18s;
+  }
+  .topic:hover{transform:translateY(-4px);box-shadow:0 22px 40px -26px rgba(12,31,23,.4);border-color:var(--mint)}
+  .topic .tag{font-family:var(--mono);font-size:.7rem;color:var(--forest);letter-spacing:.08em}
+  .topic h3{font-size:1.14rem;margin:10px 0 12px}
+  .topic ul{list-style:none;display:flex;flex-direction:column;gap:7px}
+  .topic li{font-size:.9rem;color:var(--muted);padding-left:18px;position:relative}
+  .topic li::before{content:"";position:absolute;left:0;top:.65em;width:7px;height:7px;border-radius:50%;background:var(--mint-soft);border:1.5px solid var(--forest)}
+
+  /* ---------- TRY strip ---------- */
+  .try{background:linear-gradient(135deg,var(--forest-deep),var(--forest));color:#fff;border-radius:26px;padding:56px 44px;text-align:center;position:relative;overflow:hidden}
+  .try::after{content:"";position:absolute;inset:auto -60px -80px auto;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(124,233,156,.35),transparent 70%)}
+  .try h2{font-size:clamp(1.7rem,3.2vw,2.4rem);color:#fff;position:relative}
+  .try p{color:#D8EEE2;max-width:32em;margin:14px auto 26px;position:relative}
+  .try .hero-cta{justify-content:center;position:relative}
+  .try .btn-ghost{color:#fff;border-color:rgba(255,255,255,.4)}
+  .try .btn-ghost:hover{border-color:#fff;color:var(--mint)}
+  .try .btn-mint{background:var(--mint);color:var(--forest-deep)}
+  .try .btn-mint:hover{transform:translateY(-2px)}
+  .soon{font-family:var(--mono);font-size:.66rem;background:rgba(255,255,255,.15);padding:2px 7px;border-radius:6px;margin-left:2px}
+
+  /* ---------- TRUST ---------- */
+  .trust{display:flex;flex-wrap:wrap;align-items:center;gap:14px 30px;justify-content:space-between}
+  .trust .sources{display:flex;flex-wrap:wrap;gap:10px}
+  .badge{font-family:var(--mono);font-size:.78rem;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 15px;color:var(--forest-deep)}
+  .disclaimer{font-size:.86rem;color:var(--muted);max-width:34em}
+
+  /* ---------- TEAM ---------- */
+  .team-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+  .member{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 16px;text-align:center}
+  .member .av{width:52px;height:52px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;font-family:var(--display);font-weight:700;color:#fff;font-size:1.1rem}
+  .member .role{font-family:var(--mono);font-size:.66rem;color:var(--forest);letter-spacing:.06em;text-transform:uppercase}
+  .member h3{font-size:1rem;margin:4px 0 6px}
+  .member p{font-size:.8rem;color:var(--muted)}
+  .member.me{border-color:var(--forest);box-shadow:0 0 0 2px var(--mint-soft)}
+
+  /* ---------- FOOTER ---------- */
+  footer{border-top:1px solid var(--line);padding:40px 0;margin-top:20px}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center}
+  footer .brand{font-size:1.05rem}
+  footer p{font-size:.84rem;color:var(--muted)}
+
+  /* ---------- INLINE CHAT EMBED ---------- */
+  .chat-embed{
+    position:relative;max-width:760px;margin:0 auto;height:600px;
+    background:var(--card);border:1px solid var(--line);border-radius:22px;overflow:hidden;
+    box-shadow:0 34px 70px -34px rgba(12,31,23,.4);
+  }
+  .chat-placeholder{
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:32px;gap:6px;
+    background:radial-gradient(120% 120% at 50% 0,#F6FBF7, #EEF5F0);
+  }
+  .cp-dot{width:60px;height:60px;border-radius:50%;background:var(--forest);display:grid;place-items:center;margin-bottom:12px}
+  .chat-placeholder h3{font-size:1.25rem}
+  .chat-placeholder p{color:var(--muted);font-size:.95rem;max-width:26em}
+  @media (max-width:560px){ .chat-embed{height:540px} }
+
+  /* reveal */
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease, transform .6s ease}
+  .reveal.in{opacity:1;transform:none}
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:900px){
+    .hero-grid{grid-template-columns:1fr;gap:38px}
+    .why-grid,.steps,.topics,.team-grid{grid-template-columns:1fr 1fr}
+    .step .arw{display:none}
+    .nav-links{
+      position:absolute;top:66px;left:0;right:0;flex-direction:column;gap:0;
+      background:var(--paper);border-bottom:1px solid var(--line);
+      max-height:0;overflow:hidden;transition:max-height .3s ease;
+    }
+    .nav-links.open{max-height:340px}
+    .nav-links a{padding:14px 24px;width:100%;border-top:1px solid var(--line)}
+    .nav-links .btn{margin:12px 24px;width:calc(100% - 48px);justify-content:center}
+    .nav-toggle{display:block}
+  }
+  @media (max-width:560px){
+    .why-grid,.steps,.topics,.team-grid{grid-template-columns:1fr}
+    .try{padding:40px 24px}
+    .section{padding:58px 0}
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a href="#top" class="brand" aria-label="MoneyMentor home">
+      <svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect width="32" height="32" rx="9" fill="#0E6E52"/>
+        <path d="M8 21V12l4 5 4-7 4 6 4-4v9" stroke="#7BE6A8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="24" cy="10" r="2" fill="#7BE6A8"/>
+      </svg>
+      MoneyMentor
+    </a>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    <nav class="nav-links" id="navLinks">
+      <a href="#why">Why</a>
+      <a href="#how">How it works</a>
+      <a href="#learn">Learn</a>
+      <a href="#try">Try it</a>
+      <a href="#try" class="btn btn-primary">Try MoneyMentor</a>
+    </nav>
+  </div>
+</header>
+
+<a id="top"></a>
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">For young Singaporeans</span>
+      <h1>Investing, <span class="u">minus the jargon.</span></h1>
+      <p class="lead">Your first steps into investing shouldn't feel like decoding a finance textbook. MoneyMentor answers your money questions in plain English — grounded in trusted Singapore sources, not internet hearsay.</p>
+      <div class="hero-cta">
+        <a href="#try" class="btn btn-primary">Ask MoneyMentor →</a>
+        <a href="#how" class="btn btn-ghost">See how it works</a>
+      </div>
+      <p class="hero-note">Answers grounded in <b>MAS</b> · <b>CPF Board</b> · <b>MoneySense</b> · <b>SGX</b></p>
+    </div>
+
+    <div class="demo" aria-label="MoneyMentor chat demo">
+      <div class="demo-top">
+        <div class="demo-dot">
+          <svg width="18" height="18" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M8 21V12l4 5 4-7 4 6 4-4v9" stroke="#7BE6A8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div>
+          <div class="who">MoneyMentor</div>
+          <div class="st">online · grounded answers</div>
+        </div>
+      </div>
+      <div class="stream" id="stream">
+        <div class="bubble bot">Hi! I'm MoneyMentor 👋 Ask me anything about investing in Singapore. Tap a question to start.</div>
+      </div>
+      <div class="chips" id="chips"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="why">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">The problem</span>
+      <h2>Most young Singaporeans want to invest — but don't know where to start.</h2>
+      <p>Between CPF, SRS, ETFs and a flood of finfluencer takes, getting started feels overwhelming and easy to get wrong. MoneyMentor closes that gap.</p>
+    </div>
+    <div class="why-grid">
+      <div class="why-card reveal"><span class="ic">🧩</span><h3>Jargon is a wall</h3><p>ETF, RSS, dollar-cost averaging — the words alone put beginners off before they even begin.</p></div>
+      <div class="why-card reveal"><span class="ic">⚠️</span><h3>Bad advice is everywhere</h3><p>Social media is full of hype and scams. It's hard to tell trustworthy guidance from a get-rich-quick pitch.</p></div>
+      <div class="why-card reveal"><span class="ic">🇸🇬</span><h3>Generic answers don't fit</h3><p>Most content online is US-focused. Young Singaporeans need answers that cover CPF, SRS, SGX and local rules.</p></div>
+      <div class="why-card reveal"><span class="ic">⏱️</span><h3>No time for deep dives</h3><p>People want a quick, clear answer to one question — not a two-hour course before they can act.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="how">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">How it works</span>
+      <h2>Ask a question. Get a grounded answer.</h2>
+      <p>MoneyMentor uses retrieval-augmented generation (RAG): it looks up a curated knowledge base of trusted Singapore sources before it answers, so replies stay accurate — not made up.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><span class="num">STEP 01</span><h3>You ask</h3><p>Type a real question in everyday words — "What's an ETF?" or "How do I avoid scams?"<span class="arw">→</span></p></div>
+      <div class="step reveal"><span class="num">STEP 02</span><h3>It retrieves</h3><p>MoneyMentor pulls the most relevant entry from a knowledge base built on MAS, CPF, SGX and MoneySense.<span class="arw">→</span></p></div>
+      <div class="step reveal"><span class="num">STEP 03</span><h3>You understand</h3><p>You get a short, plain-language answer with its source — clear enough to act on with confidence.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="learn">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">What you can learn</span>
+      <h2>22 beginner topics, five simple areas.</h2>
+      <p>The knowledge base covers the questions young investors actually ask — from the very basics to staying safe.</p>
+    </div>
+    <div class="topics">
+      <div class="topic reveal"><span class="tag">01 · GETTING STARTED</span><h3>First steps</h3><ul><li>Saving vs investing</li><li>Building an emergency fund</li><li>How much you need to start</li></ul></div>
+      <div class="topic reveal"><span class="tag">02 · CORE CONCEPTS</span><h3>The basics</h3><ul><li>What is an ETF</li><li>Risk vs return</li><li>Diversification &amp; compounding</li></ul></div>
+      <div class="topic reveal"><span class="tag">03 · SG VEHICLES</span><h3>Local know-how</h3><ul><li>CPF, SRS &amp; CPFIS</li><li>Singapore Savings Bonds</li><li>SGX &amp; Regular Shares Savings</li></ul></div>
+      <div class="topic reveal"><span class="tag">04 · PRACTICAL</span><h3>Getting set up</h3><ul><li>Opening an account</li><li>Robo-advisors</li><li>Watching out for fees</li></ul></div>
+      <div class="topic reveal"><span class="tag">05 · STAYING SAFE</span><h3>Protect yourself</h3><ul><li>Spotting investment scams</li><li>Crypto for beginners</li><li>How MAS protects you</li></ul></div>
+      <div class="topic reveal" style="background:linear-gradient(160deg,#F6FBF7,#E7F4EC);border-color:var(--mint)"><span class="tag">GROUNDED</span><h3>Built on trusted sources</h3><ul><li>Every answer is traceable</li><li>No hype, no guesswork</li><li>Singapore-specific</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="try">
+  <div class="wrap">
+    <div class="section-head reveal" style="margin:0 auto 34px;text-align:center">
+      <span class="eyebrow" style="justify-content:center">Try it live</span>
+      <h2>Ask MoneyMentor anything.</h2>
+      <p>Type a real money question below and get a grounded answer, right here on the page.</p>
+    </div>
+    <div class="chat-embed reveal">
+      <div id="moneymentor-chat"></div>
+      <div class="chat-placeholder" id="chatPlaceholder">
+        <div class="cp-dot">
+          <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M8 21V12l4 5 4-7 4 6 4-4v9" stroke="#7BE6A8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3>MoneyMentor is almost ready</h3>
+        <p>The live assistant activates once the n8n Chat URL is connected and the site is hosted.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="trust">
+  <div class="wrap trust reveal">
+    <div>
+      <span class="eyebrow" style="margin-bottom:12px">Grounded &amp; honest</span>
+      <div class="sources">
+        <span class="badge">MAS</span>
+        <span class="badge">CPF Board</span>
+        <span class="badge">MoneySense</span>
+        <span class="badge">SGX</span>
+        <span class="badge">IRAS</span>
+      </div>
+    </div>
+    <p class="disclaimer">MoneyMentor provides general educational information only and is not licensed financial advice. Always do your own research and consider speaking to a licensed financial adviser before investing.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0E6E52"/><path d="M8 21V12l4 5 4-7 4 6 4-4v9" stroke="#7BE6A8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="10" r="2" fill="#7BE6A8"/></svg>
+      MoneyMentor
+    </div>
+    <p>Investing, minus the jargon. · © 2026 MoneyMentor</p>
+  </div>
+</footer>
+
+<script>
+  // ----- Mobile nav -----
+  const tog = document.getElementById('navToggle');
+  const links = document.getElementById('navLinks');
+  tog.addEventListener('click', ()=>{
+    const open = links.classList.toggle('open');
+    tog.setAttribute('aria-expanded', open);
+  });
+  links.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{
+    links.classList.remove('open'); tog.setAttribute('aria-expanded',false);
+  }));
+
+  // ----- (live chat is now embedded inline in the "Try it" section) -----
+
+  // ----- Chat demo (client-side, grounded in the knowledge base) -----
+  const QA = [
+    {q:"What's an ETF?",
+     a:"An ETF is a single fund holding many companies' shares that trades like a stock. Buy one unit and you instantly own a slice of everything inside — instant diversification, usually with low fees. In Singapore, an STI ETF tracks our 30 biggest listed companies.",
+     s:"SGX · MoneySense"},
+    {q:"How much do I need to start?",
+     a:"Not much at all. A Regular Shares Savings plan lets you start from about $100 a month, and some robo-advisors have no minimum. Starting small and regularly beats waiting until you've saved a big lump sum.",
+     s:"MoneySense"},
+    {q:"Is crypto safe for beginners?",
+     a:"Crypto is very volatile — prices swing hard and you can lose a lot fast, so it's not a good core holding for beginners. If you try it, use only money you can afford to lose and never borrow to buy. MAS restricts crypto marketing to the public for this reason.",
+     s:"MAS"},
+    {q:"What is CPF?",
+     a:"CPF is Singapore's mandatory savings scheme. Part of your pay goes into your Ordinary Account (housing, ~2.5%), Special Account (retirement, up to ~4%) and MediSave (healthcare). It's the backbone of retirement, housing and healthcare planning here.",
+     s:"CPF Board"},
+    {q:"How do I avoid scams?",
+     a:"Watch for 'guaranteed' high returns, pressure to act fast, and DMs from strangers. Before investing, check the firm on the MAS Financial Institutions Directory and the MAS Investor Alert List. If it sounds too good to be true, it is.",
+     s:"MAS"},
+    {q:"What's dollar-cost averaging?",
+     a:"It's investing a fixed amount every month, no matter the price. You buy more units when prices are low and fewer when high, so timing matters far less. It's a simple, disciplined habit — great for beginners.",
+     s:"MoneySense"}
+  ];
+
+  const stream = document.getElementById('stream');
+  const chipWrap = document.getElementById('chips');
+  const reduce = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let busy = false;
+
+  QA.forEach((item,i)=>{
+    const c = document.createElement('button');
+    c.className='chip'; c.textContent=item.q; c.dataset.i=i;
+    c.addEventListener('click',()=>ask(i,c));
+    chipWrap.appendChild(c);
+  });
+
+  function scrollDown(){ stream.scrollTop = stream.scrollHeight; }
+
+  function ask(i, chip){
+    if(busy) return;
+    busy = true;
+    const item = QA[i];
+    chip.disabled = true;
+
+    const u = document.createElement('div');
+    u.className='bubble user'; u.textContent=item.q;
+    stream.appendChild(u); scrollDown();
+
+    const think = reduce ? 250 : 750;
+    const typing = document.createElement('div');
+    typing.className='bubble bot';
+    typing.innerHTML='<span class="typing"><i></i><i></i><i></i></span>';
+    setTimeout(()=>{ stream.appendChild(typing); scrollDown(); }, 220);
+
+    setTimeout(()=>{
+      typing.remove();
+      const b = document.createElement('div');
+      b.className='bubble bot';
+      stream.appendChild(b); scrollDown();
+      typeOut(b, item.a, ()=>{
+        const src = document.createElement('div');
+        src.className='src'; src.innerHTML='Grounded in: <b>'+item.s+'</b>';
+        stream.appendChild(src); scrollDown();
+        busy=false;
+      });
+    }, think);
+  }
+
+  function typeOut(el, text, done){
+    if(reduce){ el.textContent=text; scrollDown(); done(); return; }
+    let n=0;
+    const step=()=>{
+      el.textContent = text.slice(0,n);
+      n++; scrollDown();
+      if(n<=text.length){ setTimeout(step, 12); } else { done(); }
+    };
+    step();
+  }
+
+  // ----- Scroll reveal -----
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+  },{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+
+<!-- ============================================================= -->
+<!--  LIVE MoneyMentor CHATBOT  (n8n Chat widget)                   -->
+<!--  ► STEP 1: In n8n, open your Chat Trigger node and copy its    -->
+<!--    "Chat URL" (the production webhook URL).                    -->
+<!--  ► STEP 2: Paste it below, replacing PASTE_YOUR_N8N_CHAT_URL.  -->
+<!--  ► STEP 3: In the Chat Trigger node, add your website address  -->
+<!--    to "Allowed Origins (CORS)", make the workflow ACTIVE,      -->
+<!--    then open the hosted site (not the local file).             -->
+<!-- ============================================================= -->
+<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
+<style>
+  /* Theme the n8n chat to match MoneyMentor branding */
+  :root{
+    --chat--color-primary: #0E6E52;
+    --chat--color-primary-shade-50: #0A4F3B;
+    --chat--color-primary-shade-100: #083E2E;
+    --chat--color-secondary: #7BE6A8;
+    --chat--color-secondary-shade-50: #63d492;
+    --chat--toggle--background: #0E6E52;
+    --chat--toggle--hover--background: #0A4F3B;
+    --chat--toggle--active--background: #083E2E;
+    --chat--header--background: #0A4F3B;
+    --chat--header--color: #ffffff;
+    --chat--message--user--background: #0E6E52;
+    --chat--message--user--color: #ffffff;
+    --chat--message--bot--background: #F0F5F1;
+    --chat--message--bot--color: #0C1F17;
+    --chat--body--background: #ffffff;
+  }
+  #moneymentor-chat{width:100%;height:100%}
+</style>
+<script type="module">
+  import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+
+  // ▼▼▼ PASTE YOUR n8n CHAT URL HERE ▼▼▼
+  window.N8N_CHAT_URL = "https://n8ngc.codeblazar.org/webhook/6b73ce01-53e9-4041-83e0-56e91e41b0ea/chat";
+  // ▲▲▲ e.g. https://n8ngc.codeblazar.org/webhook/xxxxxxxx/chat ▲▲▲
+
+  if (window.N8N_CHAT_URL.startsWith("https://")) {
+    const ph = document.getElementById('chatPlaceholder');
+    if (ph) ph.style.display = 'none';           // hide "almost ready" note
+    createChat({
+      webhookUrl: window.N8N_CHAT_URL,
+      mode: 'fullscreen',                          // fills the on-page container
+      target: '#moneymentor-chat',
+      showWelcomeScreen: false,
+      initialMessages: [
+        "Hi! I'm MoneyMentor 👋",
+        "Ask me anything about investing in Singapore."
+      ],
+      i18n: {
+        en: {
+          title: 'MoneyMentor',
+          subtitle: "Investing, minus the jargon.",
+          inputPlaceholder: 'Ask about ETFs, CPF, scams…',
+          getStarted: 'New conversation',
+          footer: ''
+        }
+      }
+    });
+  }
+</script>
+</body>
+</html>
+
     --display:'Bricolage Grotesque',system-ui,sans-serif;
     --body:'Inter',system-ui,sans-serif;
     --mono:'Space Mono',ui-monospace,monospace;
