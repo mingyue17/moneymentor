@@ -1,0 +1,50 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Market Graph - MoneyMentor</title><meta name="description" content="MoneyMentor helps young Singaporeans start investing in plain language."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"><link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet"><link rel="stylesheet" href="assets/styles.css"></head><body><header class="nav"><div class="wrap"><a href="index.html" class="brand" aria-label="MoneyMentor home"><svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0E6E52"/><path d="M8 21V12l4 5 4-7 4 6 4-4v9" stroke="#7BE6A8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="10" r="2" fill="#7BE6A8"/></svg>MoneyMentor</a><button class="nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button><nav class="nav-links" id="navLinks"><a href="where.html">Where to invest</a><a href="invest.html">What to buy</a><a href="smart-picks.html">Smart Picks</a><a style="color:var(--ink)" href="market.html">Market</a><a href="market-pulse.html">Market Pulse</a><a href="library.html">Library</a><a href="watch.html">Watch</a><a href="more.html">Go deeper</a><a href="learning-room.html">Learning Room</a><button class="btn btn-primary open-chat" type="button">Ask MoneyMentor</button></nav></div></header><!-- ============ MARKET SNAPSHOT ============ -->
+<section class="sec" id="market">
+  <div class="wrap">
+    <div class="sec-head center reveal">
+      <span class="eyebrow">The market, made real</span>
+      <h2>What Singapore's market looks like.</h2>
+      <p>This is the Straits Times Index (STI) over the past year — the benchmark that Singapore's STI ETF tracks. Notice the shape over months, not the daily wobble — that long view is what matters, not timing the swings.</p>
+    </div>
+    <div class="market-card reveal">
+      <div class="market-chart">
+        <div class="tradingview-widget-container" style="height:100%;width:100%">
+          <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
+          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+          {
+          "autosize": true,
+          "symbol": "INDEX:STI",
+          "interval": "D",
+          "range": "12M",
+          "timezone": "Asia/Singapore",
+          "theme": "light",
+          "style": "3",
+          "locale": "en",
+          "hide_side_toolbar": true,
+          "hide_top_toolbar": false,
+          "hide_volume": true,
+          "allow_symbol_change": false,
+          "save_image": false,
+          "calendar": false,
+          "support_host": "https://www.tradingview.com"
+          }
+          </script>
+        </div>
+      </div>
+      <div class="market-cap">
+        <span>Straits Times Index · INDEX:STI</span>
+        <b>Live data via TradingView · may be delayed · for education, not advice</b>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0E6E52"/><path d="M8 21V12l4 5 4-7 4 6 4-4v9" stroke="#7BE6A8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="10" r="2" fill="#7BE6A8"/></svg>
+      MoneyMentor
+    </div>
+    <p>Investing, minus the jargon. · © 2026 MoneyMentor</p>
+  </div>
+</footer><script src="assets/app.js" defer></script></body></html>
