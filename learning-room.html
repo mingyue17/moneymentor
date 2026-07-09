@@ -1,89 +1,50 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Learning Room - MoneyMentor</title>
-<meta name="description" content="MoneyMentor Learning Room with real course links and a 10-question beginner investing quiz.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet">
-<link rel="stylesheet" href="assets/styles.css">
-</head>
-<body>
-<header class="nav"><div class="wrap"><a href="index.html" class="brand" aria-label="MoneyMentor home"><svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0E6E52"/><path d="M8 21V12l4 5 4-7 4 6 4-4v9" stroke="#7BE6A8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="10" r="2" fill="#7BE6A8"/></svg>MoneyMentor</a><button class="nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button><nav class="nav-links" id="navLinks"><a href="where.html">Where to invest</a><a href="invest.html">What to buy</a><a href="smart-picks.html">Smart Picks</a><a href="market.html">Market</a><a href="market-pulse.html">Market Pulse</a><a href="library.html">Library</a><a href="watch.html">Watch</a><a href="more.html">Go deeper</a><a style="color:var(--ink)" href="learning-room.html">Learning Room</a><button class="btn btn-primary open-chat" type="button">Ask MoneyMentor</button></nav></div></header>
-
-<section class="page-hero">
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>What to Buy - MoneyMentor</title><meta name="description" content="MoneyMentor helps young Singaporeans start investing in plain language."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"><link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet"><link rel="stylesheet" href="assets/styles.css"></head><body><header class="nav"><div class="wrap"><a href="index.html" class="brand" aria-label="MoneyMentor home"><svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0E6E52"/><path d="M8 21V12l4 5 4-7 4 6 4-4v9" stroke="#7BE6A8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="10" r="2" fill="#7BE6A8"/></svg>MoneyMentor</a><button class="nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button><nav class="nav-links" id="navLinks"><a href="where.html">Where to invest</a><a style="color:var(--ink)" href="invest.html">What to buy</a><a href="smart-picks.html">Smart Picks</a><a href="market.html">Market</a><a href="market-pulse.html">Market Pulse</a><a href="library.html">Library</a><a href="watch.html">Watch</a><a href="more.html">Go deeper</a><a href="learning-room.html">Learning Room</a><button class="btn btn-primary open-chat" type="button">Ask MoneyMentor</button></nav></div></header><!-- ============ WHAT TO BUY ============ -->
+<section class="sec" id="invest">
   <div class="wrap">
-    <span class="eyebrow">Learning Room</span>
-    <h1>Level up from Noob to Advanced.</h1>
-    <p>Open real beginner resources, then take a full 10-question quiz. The quiz has two questions for each level: one meaning question and one scenario question.</p>
-  </div>
-</section>
-
-<section class="sec">
-  <div class="wrap learn-layout">
-    <div>
-      <div class="sec-head">
-        <span class="eyebrow">Actual courses</span>
-        <h2>Redirect to real courses and official resources.</h2>
-        <p>Official Singapore sources come first. LinkedIn and Udemy are optional extra learning routes.</p>
-      </div>
-      <div class="course-grid">
-        <article class="course-card"><span class="meta">Noob · Official</span><h3>MoneySense Investing Hub</h3><p>Singapore financial education hub for investing basics and responsible decisions.</p><a class="btn btn-primary" target="_blank" rel="noopener" href="https://www.moneysense.gov.sg/investing/">Open course</a></article>
-        <article class="course-card"><span class="meta">Noob · Official</span><h3>Types of Investments</h3><p>MoneySense guide to shares, bonds, unit trusts, ETFs, REITs, and product basics.</p><a class="btn btn-primary" target="_blank" rel="noopener" href="https://www.moneysense.gov.sg/investments/types-of-investments/">Open guide</a></article>
-        <article class="course-card"><span class="meta">Starter · Official</span><h3>CPF Investing</h3><p>Official CPF guide to CPFIS and investing CPF savings.</p><a class="btn btn-primary" target="_blank" rel="noopener" href="https://www.cpf.gov.sg/member/growing-your-savings/earning-higher-returns/investing-your-cpf-savings">Open CPF</a></article>
-        <article class="course-card"><span class="meta">Builder · Official</span><h3>SGX Investor Portal</h3><p>Singapore market entry point for SGX investor resources and listed-market information.</p><a class="btn btn-primary" target="_blank" rel="noopener" href="https://investors.sgx.com/">Open SGX</a></article>
-        <article class="course-card"><span class="meta">Confident · LinkedIn</span><h3>Finance Foundations</h3><p>LinkedIn Learning course covering finance basics, risk and return, markets, banks, and funds.</p><a class="btn btn-primary" target="_blank" rel="noopener" href="https://www.linkedin.com/learning/finance-foundations-24834241">Open LinkedIn</a></article>
-        <article class="course-card"><span class="meta">Confident · LinkedIn</span><h3>Behavioral Finance</h3><p>Learn how investing psychology affects financial decisions and mistakes.</p><a class="btn btn-primary" target="_blank" rel="noopener" href="https://www.linkedin.com/learning/behavioral-finance-foundations-2">Open LinkedIn</a></article>
-        <article class="course-card"><span class="meta">Advanced · Udemy</span><h3>Investing For Beginners</h3><p>Beginner course covering stocks, bonds, ETFs, funds, and portfolio basics.</p><a class="btn btn-primary" target="_blank" rel="noopener" href="https://www.udemy.com/course/investing-for-beginners-the-complete-course-stocks-cryptocurrency-nft/">Open Udemy</a></article>
-        <article class="course-card"><span class="meta">Advanced · Udemy</span><h3>Complete Investing Course</h3><p>Stocks, ETFs, index funds, mutual funds, bonds, broker use, and diversification.</p><a class="btn btn-primary" target="_blank" rel="noopener" href="https://www.udemy.com/course/complete-investing-course-stocks-etfs-index-mutual-funds/">Open Udemy</a></article>
-        <article class="course-card"><span class="meta">AI coach</span><h3>Ask for a course path</h3><p>Let MoneyMentor recommend which course to start with based on your level.</p><button class="btn btn-primary prompt-ai" data-question="Recommend beginner investing courses for my current level. Prioritise official Singapore sources first, then LinkedIn or Udemy.">Ask AI</button></article>
-      </div>
-      <p class="disclaimer">Course prices and access rules may change. LinkedIn and Udemy links are optional resources, not official endorsements.</p>
+    <div class="sec-head reveal">
+      <span class="eyebrow">What to buy</span>
+      <h2>4 solid options for beginners.</h2>
+      <p>Ordered from safest to most growth. A common approach is to keep money you'll need soon in the safe options, and invest longer-term money for growth.</p>
     </div>
-    <aside class="progress-card">
-      <p>Current quiz level</p>
-      <h2 id="levelName">Noob</h2>
-      <p id="nextLevel">Next: Starter</p>
-      <div class="bar"><div class="bar-fill" id="progressFill"></div></div>
-      <div class="stats">
-        <div class="stat"><b id="bestScore">0%</b><span>Best</span></div>
-        <div class="stat"><b id="attempts">0</b><span>Attempts</span></div>
-        <div class="stat"><b>10</b><span>Questions</span></div>
+    <div class="invest-grid">
+      <div class="inv-card reveal">
+        <span class="rank">OPTION 01 · SAFEST</span>
+        <h3>Singapore Savings Bonds</h3>
+        <span class="tag">Best for: money you can't afford to lose</span>
+        <p>Government bonds backed by MAS. Your principal is protected, you can start from S$500, redeem in any month without penalty, and the interest steps up the longer you hold. Low risk, low-to-moderate return.</p>
+        <div class="risk"><span class="dots"><i class="on"></i><i></i><i></i></span> RISK · VERY LOW</div>
       </div>
-      <p>Progress is saved in this browser. Retake the quiz to improve your level.</p>
-    </aside>
+      <div class="inv-card reveal">
+        <span class="rank">OPTION 02 · SAFE</span>
+        <h3>Fixed deposits &amp; T-bills</h3>
+        <span class="tag">Best for: short-term savings with a known return</span>
+        <p>The local version of a "CD" — you lock money away for a set period in exchange for a fixed rate. Treasury bills work similarly and are government-issued. Great for parking cash you'll need in 6–24 months. Low risk, low return.</p>
+        <div class="risk"><span class="dots"><i class="on"></i><i></i><i></i></span> RISK · LOW</div>
+      </div>
+      <div class="inv-card reveal">
+        <span class="rank">OPTION 03 · GROWTH</span>
+        <h3>STI ETF</h3>
+        <span class="tag">Best for: a simple long-term core holding</span>
+        <p>One fund that holds Singapore's 30 largest listed companies. Buy a single unit and you're instantly diversified across the whole market, with low fees. Prices rise and fall, so it's for money you can leave for 5+ years. Moderate risk, moderate return.</p>
+        <div class="risk"><span class="dots"><i class="on"></i><i class="warn"></i><i></i></span> RISK · MODERATE</div>
+      </div>
+      <div class="inv-card reveal">
+        <span class="rank">OPTION 04 · GROWTH</span>
+        <h3>Robo-advisor portfolio</h3>
+        <span class="tag">Best for: total beginners who want it done for them</span>
+        <p>You pick a risk level; the app builds a globally diversified mix of ETFs and rebalances it automatically. Low or no minimum, small annual fee. Risk depends on the level you choose. Moderate risk, return varies.</p>
+        <div class="risk"><span class="dots"><i class="on"></i><i class="warn"></i><i></i></span> RISK · MODERATE</div>
+      </div>
+    </div>
   </div>
 </section>
 
-<section class="sec">
+<footer>
   <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">Full quiz</span>
-      <h2>10 questions, final result at the end.</h2>
-      <p>Users answer the whole quiz first. At the end, they receive their score, level, explanations, and review.</p>
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0E6E52"/><path d="M8 21V12l4 5 4-7 4 6 4-4v9" stroke="#7BE6A8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="10" r="2" fill="#7BE6A8"/></svg>
+      MoneyMentor
     </div>
-    <div class="quiz-shell" id="quizShell">
-      <div class="quiz-top"><span id="quizCount">Question 1 of 10</span><span id="quizLevel">Noob · Meaning</span></div>
-      <div class="quiz-question" id="quizQuestion"></div>
-      <div class="quiz-options" id="quizOptions"></div>
-      <div class="quiz-explain" id="quizExplain"></div>
-      <div class="hero-cta" style="margin-top:18px"><button class="btn btn-primary" id="nextQuestion" type="button">Next question</button></div>
-    </div>
-    <div class="quiz-shell quiz-results" id="quizResults">
-      <span class="eyebrow">Quiz complete</span>
-      <div class="result-score" id="resultScore">0%</div>
-      <h2 id="resultLevel">Noob</h2>
-      <p id="resultSummary"></p>
-      <div class="hero-cta" style="margin-top:18px"><button class="btn btn-primary" id="retakeQuiz" type="button">Retake quiz</button><button class="btn btn-ghost prompt-ai" data-question="I finished the MoneyMentor quiz. Help me improve my weak investing topics." type="button">Ask AI for improvement plan</button></div>
-      <div class="review-list" id="reviewList"></div>
-    </div>
+    <p>Investing, minus the jargon. · © 2026 MoneyMentor</p>
   </div>
-</section>
-
-<footer><div class="wrap"><div class="brand"><svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0E6E52"/><path d="M8 21V12l4 5 4-7 4 6 4-4v9" stroke="#7BE6A8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="10" r="2" fill="#7BE6A8"/></svg>MoneyMentor</div><p>Investing, minus the jargon. · © 2026 MoneyMentor</p></div></footer>
-<script src="assets/app.js" defer></script>
-</body>
-</html>
+</footer><script src="assets/app.js" defer></script></body></html>
