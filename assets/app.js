@@ -1,5 +1,103 @@
 const navToggle = document.getElementById("navToggle");
 const navLinks = document.getElementById("navLinks");
+const PROFILE_KEY = "mm_learning_profile";
+const SESSION_KEY = "mm_session_id";
+
+function makeSessionId() {
+  if (globalThis.crypto?.randomUUID) return `mm-${globalThis.crypto.randomUUID()}`;
+  return `mm-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function getSessionId() {
+  let sessionId = localStorage.getItem(SESSION_KEY);
+  if (!sessionId) {
+    sessionId = makeSessionId();
+    localStorage.setItem(SESSION_KEY, sessionId);
+  }
+  return sessionId;
+}
+
+function defaultProfile() {
+  const now = new Date().toISOString();
+  return {
+    sessionId: getSessionId(),
+    nickname: "Guest",
+    beginnerLevel: "Noob",
+    budget: "S$500",
+    riskComfort: "Low",
+    timeHorizon: "6 months",
+    goal: "Safety first",
+    profileMode: "guest",
+    createdAt: now,
+    updatedAt: now
+  };
+}
+
+function getProfile() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(PROFILE_KEY) || "null");
+    if (stored && stored.sessionId) {
+      return { ...defaultProfile(), ...stored, sessionId: stored.sessionId };
+    }
+  } catch {}
+  const profile = defaultProfile();
+  localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+  return profile;
+}
+
+function saveProfile(profile) {
+  const existing = getProfile();
+  const next = {
+    ...existing,
+    ...profile,
+    sessionId: existing.sessionId || getSessionId(),
+    updatedAt: new Date().toISOString()
+  };
+  if (!next.createdAt) next.createdAt = next.updatedAt;
+  localStorage.setItem(SESSION_KEY, next.sessionId);
+  localStorage.setItem(PROFILE_KEY, JSON.stringify(next));
+  updateProfileUI(next);
+  return next;
+}
+
+function shortSessionId(sessionId) {
+  return sessionId ? `${sessionId.slice(0, 8)}...${sessionId.slice(-6)}` : "Not created";
+}
+
+function updateProfileUI(profile = getProfile()) {
+  const displayName = profile.nickname?.trim() || "Guest";
+  const pageName = document.getElementById("profileStatusName");
+  const pageSession = document.getElementById("profileSessionId");
+  const pageLevel = document.getElementById("profileStatusLevel");
+  const pageBudget = document.getElementById("profileStatusBudget");
+  const pageRisk = document.getElementById("profileStatusRisk");
+  const pageHorizon = document.getElementById("profileStatusHorizon");
+  const pageGoal = document.getElementById("profileStatusGoal");
+  if (pageName) pageName.textContent = displayName;
+  if (pageSession) pageSession.textContent = profile.sessionId;
+  if (pageLevel) pageLevel.textContent = profile.beginnerLevel;
+  if (pageBudget) pageBudget.textContent = profile.budget;
+  if (pageRisk) pageRisk.textContent = profile.riskComfort;
+  if (pageHorizon) pageHorizon.textContent = profile.timeHorizon;
+  if (pageGoal) pageGoal.textContent = profile.goal;
+
+  const sideName = document.getElementById("sideProfileName");
+  const sideSession = document.getElementById("sideSessionId");
+  const sideBeginner = document.getElementById("sideBeginnerLevel");
+  const sideBudget = document.getElementById("sideBudget");
+  const sideRisk = document.getElementById("sideRiskComfort");
+  const sideGoal = document.getElementById("sideGoal");
+  if (sideName) sideName.textContent = displayName;
+  if (sideSession) sideSession.textContent = shortSessionId(profile.sessionId);
+  if (sideBeginner) sideBeginner.textContent = profile.beginnerLevel;
+  if (sideBudget) sideBudget.textContent = profile.budget;
+  if (sideRisk) sideRisk.textContent = profile.riskComfort;
+  if (sideGoal) sideGoal.textContent = profile.goal;
+
+  document.querySelectorAll("[data-profile-name]").forEach((el) => {
+    el.textContent = displayName;
+  });
+}
 
 if (navToggle && navLinks) {
   navToggle.addEventListener("click", () => {
@@ -13,6 +111,69 @@ if (navToggle && navLinks) {
     });
   });
 }
+
+function setCheckedValue(name, value) {
+  const input = [...document.querySelectorAll(`input[name="${name}"]`)].find((item) => item.value === value);
+  if (input) input.checked = true;
+}
+
+function fillProfileForm(profile = getProfile()) {
+  const form = document.getElementById("profileForm");
+  if (!form) return;
+  const nickname = document.getElementById("profileNickname");
+  const budget = document.getElementById("profileBudget");
+  const goal = document.getElementById("profileGoal");
+  if (nickname) nickname.value = profile.profileMode === "guest" ? "" : profile.nickname || "";
+  if (budget) budget.value = profile.budget || "S$500";
+  if (goal) goal.value = profile.goal || "Safety first";
+  setCheckedValue("beginnerLevel", profile.beginnerLevel || "Noob");
+  setCheckedValue("riskComfort", profile.riskComfort || "Low");
+  setCheckedValue("timeHorizon", profile.timeHorizon || "6 months");
+}
+
+function profileFromForm(mode = "profile") {
+  const form = document.getElementById("profileForm");
+  const data = new FormData(form);
+  const nickname = String(data.get("nickname") || "").trim();
+  return {
+    nickname: mode === "guest" ? "Guest" : nickname || "Guest",
+    beginnerLevel: String(data.get("beginnerLevel") || "Noob"),
+    budget: String(data.get("budget") || "S$500"),
+    riskComfort: String(data.get("riskComfort") || "Low"),
+    timeHorizon: String(data.get("timeHorizon") || "6 months"),
+    goal: String(data.get("goal") || "Safety first"),
+    profileMode: mode
+  };
+}
+
+function showProfileSuccess(message = "Profile saved.") {
+  const box = document.getElementById("profileSuccess");
+  if (!box) return;
+  box.textContent = message;
+  box.classList.add("show");
+}
+
+const profileForm = document.getElementById("profileForm");
+if (profileForm) {
+  fillProfileForm();
+  updateProfileUI();
+  profileForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    saveProfile(profileFromForm("profile"));
+    showProfileSuccess("Profile saved. Your session ID is ready for n8n and Google Sheets logging.");
+  });
+}
+
+const startGuest = document.getElementById("startGuest");
+if (startGuest) {
+  startGuest.addEventListener("click", () => {
+    const profile = saveProfile({ ...profileFromForm("guest"), nickname: "Guest", profileMode: "guest" });
+    fillProfileForm(profile);
+    showProfileSuccess("Guest profile started. You still have a stable session ID for memory and logging.");
+  });
+}
+
+updateProfileUI();
 
 const revealEls = document.querySelectorAll(".reveal");
 if (revealEls.length) {
@@ -430,12 +591,14 @@ function renderPulseList(activeId = MARKET_ALERTS[0].id) {
 
 function refreshAccountPanel() {
   const progress = getProgress();
+  const profile = getProfile();
   const best = progress.best || 0;
   const level = levelFor(best).name;
   const quizLevel = document.getElementById("sideQuizLevel");
   const bestScore = document.getElementById("sideBestScore");
   if (quizLevel) quizLevel.textContent = level;
   if (bestScore) bestScore.textContent = `${best}%`;
+  updateProfileUI(profile);
 }
 
 function openPulseSidebar(id = null) {
@@ -511,10 +674,18 @@ function injectPulseSidebar() {
         <section class="side-section">
           <h3>Account</h3>
           <div class="account-mini">
-            <div class="mini-stat"><b>Guest</b><span>Current account</span></div>
+            <div class="mini-stat"><b id="sideProfileName">Guest</b><span>Current profile</span></div>
+            <div class="mini-stat"><b id="sideSessionId">Not created</b><span>Session ID</span></div>
+            <div class="mini-stat"><b id="sideBeginnerLevel">Noob</b><span>Beginner level</span></div>
+            <div class="mini-stat"><b id="sideBudget">S$500</b><span>Budget</span></div>
+            <div class="mini-stat"><b id="sideRiskComfort">Low</b><span>Risk comfort</span></div>
+            <div class="mini-stat"><b id="sideGoal">Safety first</b><span>Main goal</span></div>
             <div class="mini-stat"><b id="sideQuizLevel">Noob</b><span>Quiz level</span></div>
             <div class="mini-stat"><b id="sideBestScore">0%</b><span>Best quiz score</span></div>
             <div class="mini-stat"><b><span data-pulse-opened>0</span>/<span data-pulse-total>0</span></b><span>Alerts opened</span></div>
+          </div>
+          <div class="hero-cta" style="margin-top:14px">
+            <a class="btn btn-ghost" href="profile.html">Manage profile</a>
           </div>
         </section>
         <section class="side-section">

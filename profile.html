@@ -1,49 +1,124 @@
-# MoneyMentor Product Structure
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile - MoneyMentor</title>
+<meta name="description" content="Create a lightweight MoneyMentor learning profile for personalized beginner investing guidance.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<header class="nav"><div class="wrap"><a href="index.html" class="brand" aria-label="MoneyMentor home"><svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0E6E52"/><path d="M8 21V12l4 5 4-7 4 6 4-4v9" stroke="#7BE6A8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="10" r="2" fill="#7BE6A8"/></svg>MoneyMentor</a><button class="nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button><nav class="nav-links" id="navLinks"><a href="where.html">Where to invest</a><a href="invest.html">What to buy</a><a href="smart-picks.html">Smart Picks</a><a href="market.html">Market</a><a href="market-pulse.html">Market Pulse</a><a href="library.html">Library</a><a href="watch.html">Watch</a><a href="more.html">Go deeper</a><a href="learning-room.html">Learning Room</a><button class="btn btn-primary open-chat" type="button">Ask MoneyMentor</button></nav></div></header>
 
-## Locked Product Promise
+<section class="page-hero">
+  <div class="wrap">
+    <span class="eyebrow">Profile onboarding</span>
+    <h1>Create your MoneyMentor profile.</h1>
+    <p>This is not a password login. It is a safe learning profile that gives the chatbot and future Google Sheets logs one consistent session ID.</p>
+  </div>
+</section>
 
-MoneyMentor is a beginner investing assistant for young Singaporeans. It explains investing concepts, gives sensible beginner recommendations, teaches through quizzes, translates market news into plain English, and remembers user progress through a lightweight learning profile.
+<section class="sec">
+  <div class="wrap profile-layout">
+    <article class="profile-card">
+      <form class="profile-form" id="profileForm">
+        <div class="field">
+          <label for="profileNickname">Nickname</label>
+          <input id="profileNickname" name="nickname" type="text" maxlength="30" placeholder="e.g. Lakshmi" autocomplete="nickname">
+          <small>Optional. Do not enter passwords or sensitive personal data.</small>
+        </div>
 
-## Target Audience
+        <div class="form-grid">
+          <div class="field">
+            <label for="profileBudget">Starting budget</label>
+            <select id="profileBudget" name="budget">
+              <option value="S$500">S$500</option>
+              <option value="S$1,000">S$1,000</option>
+              <option value="S$100 monthly">S$100 monthly</option>
+              <option value="Not sure">Not sure</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="profileGoal">Main goal</label>
+            <select id="profileGoal" name="goal">
+              <option value="Safety first">Safety first</option>
+              <option value="Learn investing">Learn investing</option>
+              <option value="Long-term growth">Long-term growth</option>
+              <option value="Income/dividends">Income/dividends</option>
+            </select>
+          </div>
+        </div>
 
-- Young Singaporean adults
-- Beginner investors
-- Users who feel blocked by jargon, fear of losing money, scams, and information overload
+        <div class="choice-group">
+          <span>Beginner level</span>
+          <div class="choice-row">
+            <input id="levelNoob" type="radio" name="beginnerLevel" value="Noob" checked>
+            <label for="levelNoob">Noob</label>
+            <input id="levelStarter" type="radio" name="beginnerLevel" value="Starter">
+            <label for="levelStarter">Starter</label>
+            <input id="levelBuilder" type="radio" name="beginnerLevel" value="Builder">
+            <label for="levelBuilder">Builder</label>
+          </div>
+        </div>
 
-## Final Website Pages
+        <div class="choice-group">
+          <span>Risk comfort</span>
+          <div class="choice-row">
+            <input id="riskLow" type="radio" name="riskComfort" value="Low" checked>
+            <label for="riskLow">Low</label>
+            <input id="riskMedium" type="radio" name="riskComfort" value="Medium">
+            <label for="riskMedium">Medium</label>
+            <input id="riskHigh" type="radio" name="riskComfort" value="High">
+            <label for="riskHigh">High</label>
+          </div>
+        </div>
 
-1. `index.html` - Home and product overview
-2. `where.html` - Where beginners can start investing
-3. `invest.html` - Beginner investment options
-4. `smart-picks.html` - Direct beginner recommendation examples
-5. `market.html` - STI market snapshot graph
-6. `market-pulse.html` - Beginner-friendly market news alerts
-7. `library.html` - Plain-English investing glossary
-8. `watch.html` - Beginner video resources
-9. `more.html` - Official guides and books
-10. `learning-room.html` - Courses and 10-question quiz
-11. `sources-safety.html` - Grounding sources and safety rules
-12. `profile.html` - MoneyMentor learning profile onboarding
+        <div class="choice-group">
+          <span>Time horizon</span>
+          <div class="choice-row">
+            <input id="horizonShort" type="radio" name="timeHorizon" value="6 months" checked>
+            <label for="horizonShort">6 months</label>
+            <input id="horizonMedium" type="radio" name="timeHorizon" value="1-3 years">
+            <label for="horizonMedium">1-3 years</label>
+            <input id="horizonLong" type="radio" name="timeHorizon" value="5+ years">
+            <label for="horizonLong">5+ years</label>
+          </div>
+        </div>
 
-## Memory Design
+        <div class="profile-success" id="profileSuccess">Profile saved. MoneyMentor now has a session ID for memory and future Google Sheets logging.</div>
 
-- Browser `localStorage`: stores profile, session ID, quiz progress, and opened Market Pulse alerts.
-- n8n Simple Memory: short-term chat context.
-- Google Sheets, later phase: long-term evidence logs for user profile, chat history, quiz progress, recommendations, and Market Pulse events.
+        <div class="hero-cta">
+          <button class="btn btn-primary" type="submit">Save learning profile</button>
+          <button class="btn btn-ghost" type="button" id="startGuest">Start as Guest</button>
+        </div>
+      </form>
+    </article>
 
-## Profile Data Fields
+    <aside class="profile-card profile-status">
+      <span class="eyebrow">Current profile</span>
+      <h2 id="profileStatusName">Guest</h2>
+      <div class="session-pill" id="profileSessionId">Session not created yet</div>
+      <div class="profile-summary">
+        <div class="summary-row"><span>Level</span><b id="profileStatusLevel">Noob</b></div>
+        <div class="summary-row"><span>Budget</span><b id="profileStatusBudget">S$500</b></div>
+        <div class="summary-row"><span>Risk</span><b id="profileStatusRisk">Low</b></div>
+        <div class="summary-row"><span>Horizon</span><b id="profileStatusHorizon">6 months</b></div>
+        <div class="summary-row"><span>Goal</span><b id="profileStatusGoal">Safety first</b></div>
+      </div>
+      <p class="profile-note">Later, this exact session ID can be sent to n8n and Google Sheets so quiz scores, recommendations, chats, and Market Pulse opens belong to the same user profile.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="learning-room.html">Go to Learning Room</a>
+        <button class="btn btn-ghost open-chat" type="button">Ask MoneyMentor</button>
+      </div>
+    </aside>
+  </div>
+</section>
 
-- `session_id`
-- `nickname`
-- `beginner_level`
-- `budget`
-- `risk_comfort`
-- `time_horizon`
-- `goal`
-- `profile_mode`
-- `created_at`
-- `updated_at`
-
-## Safety Rule
-
-This project does not store passwords. Profile onboarding is not authentication. It is a lightweight learning profile for personalization and project logging.
+<footer><div class="wrap"><div class="brand"><svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0E6E52"/><path d="M8 21V12l4 5 4-7 4 6 4-4v9" stroke="#7BE6A8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="10" r="2" fill="#7BE6A8"/></svg>MoneyMentor</div><p>Investing, minus the jargon. · © 2026 MoneyMentor</p></div></footer>
+<script src="assets/app.js" defer></script>
+</body>
+</html>
