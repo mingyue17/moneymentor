@@ -1,1 +1,625 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Practice Lab - MoneyMentor</title><meta name="description" content="MoneyMentor Practice Lab: virtual investing practice with simulated orders, P&L, watchlist, alerts, and exportable records."><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"><link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet"><link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/styles.css"></head><body><header class="nav"><div class="wrap"><a href="index.html" class="brand" aria-label="MoneyMentor home"><svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0E6E52"/><path d="M8 21V12l4 5 4-7 4 6 4-4v9" stroke="#7BE6A8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="10" r="2" fill="#7BE6A8"/></svg>MoneyMentor</a><button class="nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button><nav class="nav-links" id="navLinks"><a href="where.html">Where to invest</a><a href="invest.html">What to buy</a><a href="smart-picks.html">Smart Picks</a><a href="market.html">Market</a><a href="market-pulse.html">Market Pulse</a><a href="library.html">Library</a><a href="watch.html">Watch</a><a href="more.html">Go deeper</a><a href="learning-room.html">Learning Room</a><button class="btn btn-primary open-chat" type="button">Ask MoneyMentor</button></nav></div></header><section class="page-hero"><div class="wrap"><span class="eyebrow">Practice Lab</span><h1>Paper-trade the lesson, not the hype.</h1><p>Use S$10,000 of virtual cash to practise watchlists, order types, holdings, P&L, alerts, reset, and exportable records. Prices here are simulated for education, so this is not a broker and not real trading.</p></div></section><main id="practiceLab"><section class="sec"><div class="wrap practice-layout"><div><div class="sec-head"><span class="eyebrow">Virtual account</span><h2>A beginner-safe trading simulator.</h2><p>MoneyMentor keeps the Webull-style practice mechanics, but adds plain-English lessons after every action.</p></div><div class="account-mini practice-account" id="practiceAccount"></div></div><aside class="practice-ticket" id="orderTicket"><h2>Order ticket</h2><p>Simulated order only. Use this to learn mechanics before touching real money.</p><div class="field"><label for="practiceSymbol">Asset</label><select id="practiceSymbol"></select></div><div class="form-grid"><div class="field"><label for="practiceSide">Side</label><select id="practiceSide"><option>Buy</option><option>Sell</option></select></div><div class="field"><label for="practiceOrderType">Order type</label><select id="practiceOrderType"><option>Market</option><option>Limit</option><option>Stop</option></select></div></div><div class="form-grid"><div class="field"><label for="practiceQty">Quantity</label><input id="practiceQty" type="number" min="1" step="1" value="10"></div><div class="field"><label for="practiceLimit">Limit price</label><input id="practiceLimit" type="number" min="0" step="0.01" placeholder="Optional"></div></div><div class="field"><label for="practiceStop">Stop price</label><input id="practiceStop" type="number" min="0" step="0.01" placeholder="Only used for stop orders"></div><div class="hero-cta"><button class="btn btn-primary" id="placePracticeOrder" type="button">Place practice order</button><button class="btn btn-ghost" id="askPracticeCoach" type="button">Ask coach</button></div><div class="practice-lesson" id="practiceLesson"></div></aside></div></section><section class="sec"><div class="wrap"><div class="sec-head"><span class="eyebrow">Watchlist</span><h2>Compare beginner-friendly practice assets.</h2><p>This is a learning watchlist, not a live recommendation list. Use it to understand risk, diversification, and product differences.</p></div><div class="table-wrap"><table class="practice-table"><thead><tr><th>Asset</th><th>Type</th><th>Sim price</th><th>Change</th><th>Risk</th><th>Ticket</th></tr></thead><tbody id="practiceWatchlist"></tbody></table></div></div></section><section class="sec"><div class="wrap practice-two"><div><div class="sec-head"><span class="eyebrow">Holdings</span><h2>Portfolio and P&L.</h2><p>See how average price, current value, and unrealized gain/loss work.</p></div><div class="table-wrap"><table class="practice-table"><thead><tr><th>Asset</th><th>Qty</th><th>Avg</th><th>Current</th><th>Value</th><th>P/L</th></tr></thead><tbody id="practiceHoldings"></tbody></table></div></div><div><div class="sec-head"><span class="eyebrow">Records</span><h2>Order history.</h2><p>Every simulated order is recorded locally and can be exported for project evidence.</p></div><div class="hero-cta practice-actions"><button class="btn btn-ghost" id="exportPracticeOrders" type="button">Export CSV</button><button class="btn btn-ghost" id="resetPracticeLab" type="button">Reset practice account</button></div><div class="table-wrap"><table class="practice-table"><thead><tr><th>Time</th><th>Order</th><th>Type</th><th>Qty</th><th>Price</th><th>Status</th></tr></thead><tbody id="practiceOrders"></tbody></table></div></div></div></section><section class="sec"><div class="wrap practice-two"><div><div class="sec-head"><span class="eyebrow">Practice alerts</span><h2>Learn price-trigger thinking.</h2><p>Create a simulated alert to understand how market notification logic works.</p></div><div class="practice-ticket compact"><div class="field"><label for="alertSymbol">Asset</label><select id="alertSymbol"></select></div><div class="form-grid"><div class="field"><label for="alertDirection">Direction</label><select id="alertDirection"><option>above</option><option>below</option></select></div><div class="field"><label for="alertTarget">Target price</label><input id="alertTarget" type="number" min="0" step="0.01" placeholder="Example: 3.50"></div></div><button class="btn btn-primary" id="addPracticeAlert" type="button">Add practice alert</button></div></div><div><div class="sec-head"><span class="eyebrow">Alert log</span><h2>Saved notifications.</h2><p>These alerts are stored in this browser until reset or expiry.</p></div><ul class="practice-alert-list" id="practiceAlerts"></ul></div></div></section></main><footer><div class="wrap"><div class="brand"><svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0E6E52"/><path d="M8 21V12l4 5 4-7 4 6 4-4v9" stroke="#7BE6A8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="10" r="2" fill="#7BE6A8"/></svg>MoneyMentor</div><p>Investing, minus the jargon. &copy; 2026 MoneyMentor</p></div></footer><script src="assets/app.js" defer></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practice Lab - MoneyMentor</title>
+<meta name="description" content="Market Run: survive one simulated year of the Singapore market with S$1,000 of virtual money. Dividends, crashes, hype, rumours - no real money, just lessons.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .divers-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+  .divers-label{font-family:var(--mono);font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .divers-chip{font-family:var(--mono);font-size:.7rem;font-weight:700;border-radius:var(--r-pill);padding:6px 12px}
+  .divers-chip.good{background:var(--mint-soft);color:var(--forest-deep)}
+  .divers-chip.ok{background:var(--amber-soft);color:var(--amber)}
+  .divers-chip.weak{background:var(--risk-soft);color:var(--risk)}
+  .div-note{font-family:var(--mono);font-size:.7rem;color:var(--forest-deep);background:var(--mint-soft);border-radius:var(--r-pill);padding:6px 12px}
+</style>
+</head>
+<body data-page="practice">
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header"><div class="wrap header-inner">
+  <a href="index.html" class="brand" aria-label="MoneyMentor home"><svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0E6E52"/><path d="M8 21V12l4 5 4-7 4 6 4-4v9" stroke="#7BE6A8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="10" r="2" fill="#7BE6A8"/></svg>MoneyMentor</a>
+  <nav class="site-nav" id="navLinks" aria-label="Main">
+    <a href="index.html" data-nav="home">Home</a>
+    <a href="learn.html" data-nav="learn">Learn</a>
+    <a href="practice.html" data-nav="practice">Practice</a>
+    <a href="market.html" data-nav="market">Market</a>
+  </nav>
+  <div class="header-actions">
+    <button class="btn btn-primary open-chat" type="button">Ask<span class="header-chat-label">&nbsp;MoneyMentor</span></button>
+    <a href="profile.html" class="avatar-link" aria-label="Your learning profile"><span data-profile-initial aria-hidden="true">G</span></a>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  </div>
+</div></header>
+
+<main class="mr" id="main">
+
+  <!-- START SCREEN -->
+  <section id="startScreen">
+    <div class="mr-hero">
+      <span class="eyebrow">Practice Lab</span>
+      <h1>Market <span class="u">Run</span></h1>
+      <p>Survive one year of the Singapore market with S$1,000 of virtual cash. Real-style headlines, quarterly dividends, hype, rumours, and at least one crash. Earn XP and badges &mdash; and find out if you can beat &ldquo;doing nothing&rdquo;.</p>
+    </div>
+    <div class="how">
+      <div class="how-card"><div class="n">1</div><h3>Read the headline</h3><p>Each month a market headline drops &mdash; some real signals, some pure rumour. Part of the game is telling them apart.</p></div>
+      <div class="how-card"><div class="n">2</div><h3>Make your move</h3><p>Buy, sell, or hold five assets. Every trade costs a S$2 fee, and holdings pay real-style dividends every quarter &mdash; just like SGX stocks do.</p></div>
+      <div class="how-card"><div class="n">3</div><h3>Get your report card</h3><p>After 12 months: your result vs two benchmarks, badges, XP, and your full trade history as a CSV.</p></div>
+    </div>
+    <div class="hero-cta" id="startActions" style="justify-content:center">
+      <button class="btn btn-primary" id="startBtn" type="button">Start Market Run</button>
+    </div>
+    <div class="assets-legend">
+      <span class="lg">STI ETF &middot; steady + dividends</span>
+      <span class="lg">DBS &middot; blue chip + dividends</span>
+      <span class="lg">CICT REIT &middot; income payer</span>
+      <span class="lg">MoonCoin &middot; hype, high risk</span>
+      <span class="lg">Cash/SSB &middot; safe, small interest</span>
+    </div>
+    <div class="callout callout-warn" style="max-width:640px;margin:20px auto 0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 3 6v6c0 5 3.8 8.7 9 10 5.2-1.3 9-5 9-10V6z"/></svg>
+      <span><b>No real money is involved.</b> Prices here are simulated for learning &mdash; this is not real trading, not financial advice, and not a prediction of real returns.</span>
+    </div>
+  </section>
+
+  <!-- PLAY SCREEN -->
+  <section id="playScreen" style="display:none">
+    <div class="progress-wrap"><span class="mono" id="monthLabel">Month 1 / 12</span><div class="pbar"><div class="pbar-fill" id="pbar"></div></div></div>
+    <div class="topbar">
+      <div class="stat-box port"><div class="lab">Virtual portfolio value</div><div class="val" id="portVal">S$1,000</div></div>
+      <div class="stat-box"><div class="lab">Virtual cash</div><div class="val" id="cashVal">S$1,000</div></div>
+      <div class="stat-box"><div class="lab">Total P/L</div><div class="val" id="plVal">0.0%</div></div>
+    </div>
+    <div class="divers-row">
+      <span class="divers-label">Diversification</span>
+      <span class="divers-chip weak" id="diversChip">All cash</span>
+      <span class="div-note" id="divTotal" style="display:none">Dividends collected: S$0</span>
+    </div>
+    <div class="coach">
+      <svg class="bot" viewBox="0 0 60 60" fill="none" aria-hidden="true"><rect x="10" y="18" width="40" height="32" rx="12" fill="#fff" stroke="#0A4F3B" stroke-width="3"/><rect x="22" y="6" width="16" height="14" rx="6" fill="#fff" stroke="#0A4F3B" stroke-width="3"/><circle cx="30" cy="10" r="2.5" fill="#7BE6A8"/><circle cx="23" cy="33" r="3.2" fill="#0A4F3B"/><circle cx="37" cy="33" r="3.2" fill="#0A4F3B"/><path d="M23 42 Q30 47 37 42" stroke="#0A4F3B" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
+      <div class="bubble" id="coachText" role="status" aria-live="polite">Mento here. Let&rsquo;s grow that S$1,000.</div>
+    </div>
+    <div class="event" id="eventCard"><span class="tag">Month 1 headline</span><h3 id="eventTitle"></h3><p id="eventDesc"></p></div>
+    <div class="assets" id="assetGrid"></div>
+    <div class="next-wrap">
+      <button class="btn btn-primary" id="nextBtn" type="button">Next month</button>
+      <div class="flash" id="flash" role="status" aria-live="polite"></div>
+    </div>
+    <div class="badges" id="badgeRow"></div>
+    <div class="mr-controls">
+      <button class="mini-btn" id="exportBtnPlay" type="button">Export trades (CSV)</button>
+      <button class="mini-btn" id="restartBtn" type="button">Restart year</button>
+      <button class="mini-btn open-chat" type="button">Ask Mento</button>
+    </div>
+    <p class="disclaimer" style="text-align:center;margin-top:16px">Virtual money only. Simulated prices and dividends, for learning &mdash; not real trading and not financial advice.</p>
+  </section>
+
+  <!-- REPORT SCREEN -->
+  <section id="reportScreen" style="display:none">
+    <div class="report">
+      <span class="eyebrow" style="justify-content:center">The year is over</span>
+      <h2 id="reportTitle">Your report card</h2>
+      <div class="big" id="reportValue">S$0</div>
+      <div id="reportReturn" style="font-family:var(--mono);font-weight:700"></div>
+      <div class="bench">
+        <div class="bench-box you"><div class="lab">You played</div><div class="num" id="benchYou">S$0</div></div>
+        <div class="bench-box"><div class="lab">Did nothing (held STI ETF)</div><div class="num" id="benchEtf">S$0</div></div>
+        <div class="bench-box"><div class="lab">Left it in the bank</div><div class="num" id="benchBank">S$0</div></div>
+      </div>
+      <div class="badges" id="reportBadges"></div>
+      <div class="lesson" id="reportLesson"></div>
+      <div class="report-actions">
+        <button class="btn btn-primary" id="replayBtn" type="button">Play again</button>
+        <button class="btn btn-ghost" id="exportBtnReport" type="button">Export trades (CSV)</button>
+        <button class="btn btn-ghost prompt-ai" id="askCoachBtn" type="button">Ask Mento to review my year</button>
+      </div>
+      <p class="disclaimer" style="margin-top:18px">Simulated game for learning only &mdash; not real trading and not financial advice. Real investing means holding for years, not months.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer"><div class="wrap">
+  <div class="footer-grid">
+    <div>
+      <div class="brand"><svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0E6E52"/><path d="M8 21V12l4 5 4-7 4 6 4-4v9" stroke="#7BE6A8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="10" r="2" fill="#7BE6A8"/></svg>MoneyMentor</div>
+      <p class="footer-note">Free financial education for young Singaporeans. Not licensed financial advice, and never a guarantee of returns. Check any firm on the MAS Investor Alert List before investing real money.</p>
+    </div>
+    <nav class="footer-links" aria-label="Footer">
+      <a href="learn.html">Learn</a>
+      <a href="practice.html">Practice Lab</a>
+      <a href="market.html">Market</a>
+      <a href="sources-safety.html">Sources &amp; safety</a>
+      <a href="profile.html">Profile</a>
+    </nav>
+  </div>
+  <p class="footer-note">&copy; 2026 MoneyMentor &middot; Investing, minus the jargon.</p>
+</div></footer>
+
+<script src="assets/app.js" defer></script>
+
+<script>
+(function () {
+  "use strict";
+  const startCash = 1000, totalMonths = 12, tradeFee = 2; // S$2 flat fee per trade
+  const cashInterestMonthly = 0.0025; // ~0.25%/month on uninvested cash
+  const stateKey = "mm_marketrun_state";
+  const bestKey = "mm_marketrun_best";
+  const fmt = (n) => "S$" + Math.round(n).toLocaleString("en-SG");
+
+  /* ---- assets ---- */
+  const assetDefs = [
+    { id: "etf",  name: "STI ETF",   sub: "Singapore's top 30",      price: 3.50, drift: 0.005,  vol: 0.035, unitDp: 1, divYield: 0.010 },
+    { id: "dbs",  name: "DBS",       sub: "Blue-chip bank",          price: 35.0, drift: 0.004,  vol: 0.055, unitDp: 1, divYield: 0.013 },
+    { id: "reit", name: "CICT REIT", sub: "Property income",         price: 2.00, drift: 0.002,  vol: 0.045, unitDp: 1, divYield: 0.0125 },
+    { id: "moon", name: "MoonCoin",  sub: "Hype / high risk",        price: 1.00, drift: 0.02,   vol: 0.22,  unitDp: 0, divYield: 0 },
+    { id: "cash", name: "Cash / SSB",sub: "Safe, small interest",    price: 1.00, drift: 0.0025, vol: 0.0,   unitDp: 1, divYield: 0 }
+  ];
+
+  /* ---- event pool: effect = per-asset monthly nudge ---- */
+  const eventPool = [
+    { t: "STI hits a record high", d: "Optimism lifts the big local names.", k: "good", e: { etf: .05, dbs: .04, reit: .02 } },
+    { t: "Global sell-off", d: "Markets tumble worldwide. Red everywhere - scary, but normal.", k: "bad", e: { etf: -.07, dbs: -.08, reit: -.06, moon: -.15 } },
+    { t: "Interest rates rise", d: "Loans cost more. REITs feel the squeeze; banks earn more on lending.", k: "", e: { reit: -.06, dbs: .03 } },
+    { t: "DBS beats earnings expectations", d: "Quarterly results come in above forecasts. Investors cheer.", k: "good", e: { dbs: .06 } },
+    { t: "MoonCoin influencer pump", d: "A TikTok star says MoonCoin will '100x'. Tempting...", k: "hype", e: { moon: .55 } },
+    { t: "MAS scam warning on MoonCoin", d: "The regulator flags it. The bubble bursts hard.", k: "bad", e: { moon: -.80 }, rug: "moon" },
+    { t: "Quiet month", d: "Not much happening. Small random moves only.", k: "", e: {} },
+    { t: "Property boom", d: "Rents and occupancy up - good news for REITs.", k: "good", e: { reit: .07 } },
+    { t: "Recession fears", d: "Everyone rushes to safety at once.", k: "bad", e: { etf: -.05, dbs: -.06, reit: -.05, moon: -.20 } },
+    { t: "Year-end Santa rally", d: "Markets drift up into the holidays.", k: "good", e: { etf: .045, dbs: .03, reit: .03 } },
+    { t: "Tech rebound", d: "Growth names bounce; some of it spills into local blue chips.", k: "good", e: { dbs: .03, etf: .03, moon: .15 } },
+    { t: "Inflation cools", d: "Good news for almost everything except cash's edge.", k: "good", e: { etf: .04, reit: .04 } }
+  ];
+
+  // Unverified rumours - price effect is random noise. Teaches verification.
+  const rumourEvents = [
+    { t: "Telegram rumour: 'DBS is in trouble'", d: "An unverified message is spreading fast. No SGX announcement, no news source confirms it.", k: "hype", rumour: "dbs", e: {} },
+    { t: "Viral tip: 'REITs about to explode'", d: "A finfluencer claims REITs will double this month. No data, no source - just confidence.", k: "hype", rumour: "reit", e: {} }
+  ];
+
+  // A varied 12-month sequence: guarantees a hype pump, a rug pull, a rumour, and a crash.
+  function buildSequence() {
+    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    const pool = eventPool.filter((e) => !e.rug && e.t.indexOf("influencer") < 0);
+    const seq = [];
+    for (let i = 0; i < 3; i++) seq.push(pick(pool));
+    seq.push(eventPool.find((e) => e.t.indexOf("influencer") >= 0));
+    seq.push(pick(pool));
+    seq.push(eventPool.find((e) => e.rug === "moon"));
+    seq.push(pick(rumourEvents));
+    for (let i = 0; i < 3; i++) seq.push(pick(pool));
+    seq.push(eventPool.find((e) => e.t.indexOf("Global sell") >= 0));
+    seq.push(eventPool.find((e) => e.t.indexOf("Santa") >= 0));
+    return seq.slice(0, totalMonths);
+  }
+
+  /* ---- state ---- */
+  let game;
+  function freshGame() {
+    return {
+      month: 0,
+      cash: startCash,
+      seq: buildSequence(),
+      assets: assetDefs.map((a) => ({ ...a, price: a.price, start: a.price, units: 0, hist: [a.price] })),
+      etfStart: assetDefs.find((a) => a.id === "etf").price,
+      trades: 0,
+      tradeLog: [],
+      dividendsTotal: 0,
+      peak: startCash,
+      dip: false,
+      everBoughtMoon: false,
+      soldMoonBeforeRug: false,
+      badges: [],
+      heldThroughCrash: true,
+      maxAssetsHeld: 0,
+      curEvent: null
+    };
+  }
+  const assetById = (id) => game.assets.find((a) => a.id === id);
+  function portfolioValue() {
+    return game.cash + game.assets.reduce((sum, a) => sum + a.units * a.price, 0);
+  }
+
+  function persistGame(inProgress) {
+    try {
+      localStorage.setItem(stateKey, JSON.stringify({
+        ...game,
+        inProgress,
+        startCash,
+        portfolioValue: portfolioValue(),
+        updatedAt: new Date().toISOString()
+      }));
+    } catch {}
+  }
+  function loadSavedGame() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(stateKey) || "null");
+      if (saved && saved.inProgress && saved.month >= 1 && Array.isArray(saved.assets)) return saved;
+    } catch {}
+    return null;
+  }
+
+  /* ---- DOM ---- */
+  const byId = (id) => document.getElementById(id);
+  const startScreen = byId("startScreen"), playScreen = byId("playScreen"), reportScreen = byId("reportScreen");
+
+  byId("startBtn").addEventListener("click", () => begin());
+  byId("replayBtn").addEventListener("click", () => begin());
+  byId("nextBtn").addEventListener("click", nextMonth);
+  byId("restartBtn").addEventListener("click", () => {
+    if (window.confirm("Restart the year? Your current run and its trades will be cleared.")) begin();
+  });
+  byId("exportBtnPlay").addEventListener("click", exportTrades);
+  byId("exportBtnReport").addEventListener("click", exportTrades);
+
+  // offer resume if a run was left mid-year
+  const savedRun = loadSavedGame();
+  if (savedRun) {
+    const resumeBtn = document.createElement("button");
+    resumeBtn.className = "btn btn-ghost";
+    resumeBtn.type = "button";
+    resumeBtn.textContent = `Resume month ${savedRun.month} (${fmt(savedRun.portfolioValue)})`;
+    resumeBtn.addEventListener("click", () => {
+      game = { ...freshGame(), ...savedRun };
+      game.dividendsTotal = savedRun.dividendsTotal || 0;
+      // saves from older versions may lack dividend fields on assets
+      game.assets = savedRun.assets.map((a) => ({ ...assetDefs.find((d) => d.id === a.id), ...a }));
+      delete game.inProgress;
+      showPlay();
+      loadEvent(true);
+      renderAll();
+      coach("Welcome back. You're in month " + game.month + " with " + fmt(portfolioValue()) + " on the table.");
+    });
+    byId("startActions").appendChild(resumeBtn);
+  }
+
+  function showPlay() {
+    startScreen.style.display = "none";
+    reportScreen.style.display = "none";
+    playScreen.style.display = "block";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function begin() {
+    game = freshGame();
+    game.month = 1;
+    showPlay();
+    loadEvent();
+    renderAll();
+    coach("Month 1. You've got " + fmt(startCash) + " of virtual cash. Spread it around, collect those quarterly dividends, and don't chase hype.");
+    persistGame(true);
+  }
+
+  function loadEvent(keepCurrent = false) {
+    const ev = keepCurrent && game.curEvent ? game.curEvent : game.seq[game.month - 1];
+    game.curEvent = ev;
+    byId("eventCard").className = "event " + (ev.k || "");
+    byId("eventCard").querySelector(".tag").textContent = "Month " + game.month + " headline";
+    byId("eventTitle").textContent = ev.t;
+    byId("eventDesc").textContent = ev.d;
+  }
+
+  function diversification() {
+    const held = game.assets.filter((a) => a.id !== "cash" && a.units > 0.0001).length;
+    if (held === 0) return { cls: "weak", label: "All cash - inflation is nibbling" };
+    if (held === 1) return { cls: "weak", label: "1 basket - risky" };
+    if (held === 2) return { cls: "ok", label: "2 assets - getting there" };
+    return { cls: "good", label: held + " assets - nice spread" };
+  }
+
+  function renderAll() {
+    byId("monthLabel").textContent = "Month " + game.month + " / " + totalMonths;
+    byId("pbar").style.width = (game.month / totalMonths * 100) + "%";
+    byId("cashVal").textContent = fmt(game.cash);
+    const pv = portfolioValue();
+    byId("portVal").textContent = fmt(pv);
+    const pl = (pv / startCash - 1) * 100;
+    const plEl = byId("plVal");
+    plEl.textContent = (pl >= 0 ? "+" : "") + pl.toFixed(1) + "%";
+    plEl.className = "val " + (pl >= 0 ? "pl-up" : "pl-down");
+    const divers = diversification();
+    const chip = byId("diversChip");
+    chip.textContent = divers.label;
+    chip.className = "divers-chip " + divers.cls;
+    const divTotal = byId("divTotal");
+    if (game.dividendsTotal > 0) {
+      divTotal.style.display = "inline-block";
+      divTotal.textContent = "Dividends collected: " + fmt(game.dividendsTotal);
+    }
+    renderAssets();
+    renderBadges(byId("badgeRow"));
+  }
+
+  function renderAssets() {
+    const grid = byId("assetGrid");
+    grid.innerHTML = "";
+    game.assets.forEach((a) => {
+      if (a.id === "cash") { grid.appendChild(cashCard(a)); return; }
+      const chg = a.hist.length > 1 ? (a.price / a.hist[a.hist.length - 2] - 1) * 100 : 0;
+      const el = document.createElement("div");
+      el.className = "asset";
+      el.innerHTML = `
+        <div class="asset-top">
+          <div><span style="font-family:var(--display);font-weight:700">${a.name}</span>
+            <div class="sub">${a.sub}${a.divYield ? " &middot; pays dividends" : ""}</div></div>
+          <div><div class="price">S$${a.price.toFixed(2)}</div>
+            <div class="chg ${chg >= 0 ? "up" : "down"}">${chg >= 0 ? "&#9650;" : "&#9660;"} ${Math.abs(chg).toFixed(1)}%</div></div>
+        </div>
+        ${sparkline(a.hist)}
+        <div class="hold">You hold: <b>${a.units.toFixed(a.unitDp)}</b> units &middot; <b>${fmt(a.units * a.price)}</b></div>
+        <div class="trade">
+          <button class="chip buy" type="button" data-buy="${a.id}" data-amt="100">Buy S$100</button>
+          <button class="chip buy" type="button" data-buy="${a.id}" data-amt="250">Buy S$250</button>
+          <button class="chip sell" type="button" data-sell="${a.id}">Sell all</button>
+        </div>`;
+      grid.appendChild(el);
+    });
+    grid.querySelectorAll("[data-buy]").forEach((b) => {
+      b.addEventListener("click", () => buyAsset(b.dataset.buy, Number(b.dataset.amt)));
+      if (Number(b.dataset.amt) + tradeFee > game.cash) b.disabled = true;
+    });
+    grid.querySelectorAll("[data-sell]").forEach((b) => {
+      b.addEventListener("click", () => sellAll(b.dataset.sell));
+    });
+  }
+
+  function cashCard(a) {
+    const el = document.createElement("div");
+    el.className = "asset";
+    el.innerHTML = `<div class="asset-top"><div><span style="font-family:var(--display);font-weight:700">${a.name}</span>
+      <div class="sub">${a.sub}</div></div><div><div class="price">safe</div><div class="chg up">&#9650; ~0.25%/mo</div></div></div>
+      <p class="hold" style="margin-top:10px">Uninvested money earns a little interest here, like an SSB. Safe, but it barely grows - that's the cost of playing it too safe. Your cash: <b>${fmt(game.cash)}</b></p>`;
+    return el;
+  }
+
+  function sparkline(hist) {
+    const w = 200, h = 38, min = Math.min(...hist), max = Math.max(...hist), rng = (max - min) || 1;
+    const pts = hist.map((v, i) => {
+      const x = hist.length > 1 ? i / (hist.length - 1) * w : 0;
+      const y = h - ((v - min) / rng) * (h - 6) - 3;
+      return x.toFixed(1) + "," + y.toFixed(1);
+    }).join(" ");
+    const up = hist[hist.length - 1] >= hist[0];
+    return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="${up ? "#0E6E52" : "#B3402A"}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  }
+
+  /* ---- trading ---- */
+  function logTrade(action, assetName, amount, units, price, fee) {
+    game.tradeLog.push({
+      month: game.month,
+      event: game.curEvent ? game.curEvent.t : "",
+      action,
+      asset: assetName,
+      amountSgd: Math.round(amount * 100) / 100,
+      units: Math.round(units * 1000) / 1000,
+      price,
+      feeSgd: fee,
+      cashAfter: Math.round(game.cash * 100) / 100,
+      portfolioAfter: Math.round(portfolioValue() * 100) / 100
+    });
+  }
+
+  function buyAsset(id, amt) {
+    const a = assetById(id);
+    const cost = amt + tradeFee;
+    if (cost > game.cash) { flash("Not enough virtual cash for that."); return; }
+    game.cash -= cost;
+    const units = amt / a.price;
+    a.units += units;
+    game.trades++;
+    if (id === "moon") game.everBoughtMoon = true;
+    logTrade("Buy", a.name, amt, units, a.price, tradeFee);
+    flash("Bought " + fmt(amt) + " of " + a.name + " (minus " + fmt(tradeFee) + " fee)");
+    renderAll();
+    persistGame(true);
+  }
+
+  function sellAll(id) {
+    const a = assetById(id);
+    if (a.units <= 0) { flash("You don't hold any " + a.name + "."); return; }
+    const proceeds = a.units * a.price - tradeFee;
+    const soldUnits = a.units;
+    game.cash += Math.max(0, proceeds);
+    a.units = 0;
+    game.trades++;
+    if (id === "moon" && game.curEvent && game.curEvent.rug !== "moon") game.soldMoonBeforeRug = true;
+    logTrade("Sell", a.name, Math.max(0, proceeds), soldUnits, a.price, tradeFee);
+    flash("Sold all " + a.name + " (minus " + fmt(tradeFee) + " fee)");
+    renderAll();
+    persistGame(true);
+  }
+
+  function flash(msg) { byId("flash").textContent = msg; }
+
+  /* ---- dividends: paid every quarter on what you hold ---- */
+  function payDividends() {
+    let total = 0;
+    game.assets.forEach((a) => {
+      if (!a.divYield || a.units <= 0.0001) return;
+      const payout = a.units * a.price * a.divYield;
+      game.cash += payout;
+      total += payout;
+      logTrade("Dividend", a.name, payout, a.units, a.price, 0);
+    });
+    if (total > 0) game.dividendsTotal += total;
+    return total;
+  }
+
+  /* ---- advance a month ---- */
+  function nextMonth() {
+    const ev = game.curEvent;
+    const heldCount = game.assets.filter((a) => a.id !== "cash" && a.units > 0.0001).length;
+    game.maxAssetsHeld = Math.max(game.maxAssetsHeld, heldCount);
+    const pvBefore = portfolioValue();
+
+    // rumour months: the effect is random noise, up or down
+    const rumourMove = ev.rumour ? (Math.random() < 0.5 ? -0.05 : 0.05) : 0;
+
+    game.assets.forEach((a) => {
+      if (a.id === "cash") { a.hist.push(1); return; }
+      let move = a.drift + (Math.random() * 2 - 1) * a.vol + (ev.e[a.id] || 0);
+      if (ev.rumour === a.id) move += rumourMove;
+      let np = a.price * (1 + move);
+      if (ev.rug === a.id) np = a.price * 0.08; // rug pull wipes it
+      a.price = Math.max(0.02, np);
+      a.hist.push(a.price);
+    });
+
+    // uninvested cash earns small interest, like an SSB
+    game.cash *= (1 + cashInterestMonthly);
+
+    // quarterly dividends on holdings
+    const divPaid = (game.month % 3 === 0) ? payDividends() : 0;
+
+    const pvAfter = portfolioValue();
+    game.peak = Math.max(game.peak, pvBefore);
+    if (pvAfter < game.peak * 0.85) game.dip = true;
+    if (ev.k === "bad") {
+      const stillIn = game.assets.some((a) => a.id !== "cash" && a.id !== "moon" && a.units > 0.0001);
+      if (!stillIn) game.heldThroughCrash = false;
+    }
+
+    reactToMonth(ev, pvBefore, pvAfter, divPaid, rumourMove);
+    window.mmAddXp?.(5, null, "");
+
+    if (game.month >= totalMonths) { endGame(); return; }
+    game.month++;
+    loadEvent();
+    renderAll();
+    flash(divPaid > 0 ? "Dividends paid: " + fmt(divPaid) + " added to your cash." : "");
+    persistGame(true);
+  }
+
+  function reactToMonth(ev, before, after, divPaid, rumourMove) {
+    const pct = (after / before - 1) * 100;
+    let msg;
+    if (ev.rug === "moon" && assetById("moon").units > 0.0001) {
+      msg = "Ouch - MoonCoin got rug-pulled and your stake is basically gone. That is exactly how hype scams work in real life.";
+    } else if (ev.rug === "moon") {
+      msg = "MoonCoin just collapsed - and you weren't holding it. Smart. That instinct is what keeps real money safe.";
+    } else if (ev.rumour) {
+      msg = rumourMove >= 0
+        ? "That rumour happened to go your way this time - but notice it was a coin flip, not information. Real investors verify on SGX announcements or MAS before acting."
+        : "That rumour turned out to be noise, like most of them. Nobody who forwards a Telegram tip knows the future. Verify on SGX or trusted news before acting.";
+    } else if (ev.t.indexOf("influencer") >= 0) {
+      msg = "MoonCoin is soaring on hype. It feels like free money - that feeling is the trap.";
+    } else if (pct > 4) {
+      msg = "Nice month - up " + pct.toFixed(1) + "%. Remember: one good month proves nothing yet.";
+    } else if (pct < -4) {
+      msg = "Rough month, down " + Math.abs(pct).toFixed(1) + "%. Don't panic - good investors ride these out.";
+    } else {
+      msg = "Steady month. Boring is often good in investing.";
+    }
+    if (divPaid > 0) {
+      msg += " And " + fmt(divPaid) + " in dividends just landed in your cash - that's what companies pay you for holding.";
+    }
+    coach(msg);
+  }
+  function coach(text) { byId("coachText").textContent = text; }
+
+  /* ---- badges ---- */
+  function checkBadges(finalValue) {
+    const add = (b) => { if (!game.badges.includes(b)) game.badges.push(b); };
+    if (game.maxAssetsHeld >= 3) add("Diversifier");
+    if (!game.everBoughtMoon) add("Scam Dodger");
+    else if (game.soldMoonBeforeRug) add("Quick Exit");
+    if (game.dip && game.heldThroughCrash) add("Diamond Hands");
+    if (game.trades <= 3) add("Zen Investor");
+    if (game.dividendsTotal >= 20) add("Income Collector");
+    if (finalValue !== undefined) {
+      if (finalValue > bankBench()) add("Beat the Bank");
+      if (finalValue > etfBench()) add("Market Beater");
+    }
+  }
+  function renderBadges(el) {
+    checkBadges();
+    el.innerHTML = "";
+    game.badges.forEach((b) => {
+      const s = document.createElement("span");
+      s.className = "badge";
+      s.textContent = b;
+      el.appendChild(s);
+    });
+  }
+
+  /* ---- benchmarks ---- */
+  function etfBench() { const e = assetById("etf"); return startCash * (e.price / game.etfStart); }
+  function bankBench() { return startCash * Math.pow(1.0025, totalMonths); }
+
+  /* ---- CSV export ---- */
+  function exportTrades() {
+    if (!game || !game.tradeLog.length) {
+      flash("No trades to export yet.");
+      return;
+    }
+    const header = ["month", "event", "action", "asset", "amount_sgd", "units", "price_sgd", "fee_sgd", "cash_after_sgd", "portfolio_after_sgd"];
+    const rows = [header, ...game.tradeLog.map((t) => [t.month, t.event, t.action, t.asset, t.amountSgd, t.units, t.price, t.feeSgd, t.cashAfter, t.portfolioAfter])];
+    const csv = rows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.download = "moneymentor-market-run-trades.csv";
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 250);
+  }
+
+  /* ---- end ---- */
+  function endGame() {
+    const finalValue = portfolioValue();
+    checkBadges(finalValue);
+    playScreen.style.display = "none";
+    reportScreen.style.display = "block";
+    const ret = (finalValue / startCash - 1) * 100;
+    byId("reportValue").textContent = fmt(finalValue);
+    byId("reportReturn").textContent = (ret >= 0 ? "+" : "") + ret.toFixed(1) + "% over the year";
+    byId("reportReturn").style.color = ret >= 0 ? "#0E6E52" : "#B3402A";
+    byId("benchYou").textContent = fmt(finalValue);
+    byId("benchEtf").textContent = fmt(etfBench());
+    byId("benchBank").textContent = fmt(bankBench());
+    byId("reportTitle").textContent = ret >= 0 ? "You grew your stash." : "Tough year - but you learned.";
+    renderBadges(byId("reportBadges"));
+    byId("reportLesson").innerHTML = lessonText(finalValue);
+    byId("askCoachBtn").dataset.question =
+      `Review my MoneyMentor Market Run year. I finished with ${fmt(finalValue)} from S$1,000, made ${game.trades} trades, collected ${fmt(game.dividendsTotal)} in dividends, and the do-nothing STI ETF benchmark was ${fmt(etfBench())}. What should I learn from this? Explain, don't tell me what to trade.`;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.mmAddXp?.(60, null, "Finished a Market Run year");
+    if (game.badges.length) window.mmAddXp?.(game.badges.length * 10, null, "");
+    try {
+      const best = Number(localStorage.getItem(bestKey) || 0);
+      if (finalValue > best) localStorage.setItem(bestKey, String(Math.round(finalValue)));
+    } catch {}
+    persistGame(false);
+  }
+
+  function lessonText(finalValue) {
+    const beatEtf = finalValue > etfBench(), beatBank = finalValue > bankBench();
+    let l = "<b>What this run taught you:</b><br>";
+    if (!beatEtf && beatBank) {
+      l += "You made money - but simply holding the STI ETF and doing nothing would have done even better. That is the big lesson: for most beginners, <b>boring, patient, diversified investing beats active trading</b>. Fees and hype quietly eat returns.";
+    } else if (beatEtf) {
+      l += "You beat the do-nothing STI ETF - impressive. But in real life that is hard to repeat year after year, and every trade cost a fee. The safest long-term habit is still <b>diversify and hold</b>.";
+    } else {
+      l += "This year you would have been better off leaving it in the bank. That happens - markets fall sometimes. The fix isn't to quit; it's to <b>invest money you won't need for years</b> and ride out the dips instead of panic-selling.";
+    }
+    if (game.dividendsTotal > 0) {
+      l += `<br><br>You collected <b>${fmt(game.dividendsTotal)} in dividends</b> - money that arrived without selling anything. That is why long-term investors love dividend payers and REITs: the holding pays you while you wait.`;
+    }
+    if (game.everBoughtMoon) {
+      l += "<br><br>You bought MoonCoin - feel how the hype pulled you in? Real scams use that exact feeling. Always check the <b>MAS Investor Alert List</b> before trusting a 'guaranteed' win.";
+    } else {
+      l += "<br><br>You never touched MoonCoin. That is the real-world instinct that keeps money safe from hype scams.";
+    }
+    return l;
+  }
+})();
+</script>
+</body>
+</html>

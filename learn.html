@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learn - MoneyMentor</title>
+<meta name="description" content="Short, visual investing lessons for beginners in Singapore: play with compounding, see what risk actually looks like, and pick any topic - no fixed path.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body data-page="learn">
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header"><div class="wrap header-inner">
+  <a href="index.html" class="brand" aria-label="MoneyMentor home"><svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0E6E52"/><path d="M8 21V12l4 5 4-7 4 6 4-4v9" stroke="#7BE6A8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="10" r="2" fill="#7BE6A8"/></svg>MoneyMentor</a>
+  <nav class="site-nav" id="navLinks" aria-label="Main">
+    <a href="index.html" data-nav="home">Home</a>
+    <a href="learn.html" data-nav="learn">Learn</a>
+    <a href="practice.html" data-nav="practice">Practice</a>
+    <a href="market.html" data-nav="market">Market</a>
+  </nav>
+  <div class="header-actions">
+    <button class="btn btn-primary open-chat" type="button">Ask<span class="header-chat-label">&nbsp;MoneyMentor</span></button>
+    <a href="profile.html" class="avatar-link" aria-label="Your learning profile"><span data-profile-initial aria-hidden="true">G</span></a>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  </div>
+</div></header>
+
+<main id="main">
+
+  <section class="page-head"><div class="wrap">
+    <span class="eyebrow">Learn</span>
+    <h1>Short, visual, no homework.</h1>
+    <p>Pick whatever looks interesting &mdash; there&rsquo;s no fixed order. Play with the numbers below, see what risk actually looks like, then jump to any topic.</p>
+  </div></section>
+
+  <section class="sec" id="basics"><div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Investing basics</span>
+      <h2>Why bother investing at all? Try it.</h2>
+      <p>Investing means putting money into something &mdash; a company, a fund, a bond &mdash; expecting it to be worth more later. Words are boring; drag the slider and watch what actually happens to your money.</p>
+    </div>
+
+    <div class="calc" id="growthCalc">
+      <div class="calc-controls">
+        <div>
+          <span class="seg-label" id="segLabel">How much can you put in monthly?</span>
+          <div class="seg" role="group" aria-labelledby="segLabel">
+            <button type="button" data-monthly="100" aria-pressed="true">S$100</button>
+            <button type="button" data-monthly="300" aria-pressed="false">S$300</button>
+            <button type="button" data-monthly="500" aria-pressed="false">S$500</button>
+          </div>
+        </div>
+        <div>
+          <label for="calcYears">For how many years? <b id="calcYearsLabel">10 years</b></label>
+          <input class="calc-slider" type="range" id="calcYears" min="1" max="30" step="1" value="10">
+        </div>
+      </div>
+      <div class="calc-bars" aria-live="polite">
+        <div class="calc-bar saved">
+          <b id="calcSaved">S$0</b>
+          <div class="bar-col" id="barSaved" style="height:6px"></div>
+          <span>What you put in<br>(under the mattress)</span>
+        </div>
+        <div class="calc-bar bank">
+          <b id="calcBank">S$0</b>
+          <div class="bar-col" id="barBank" style="height:6px"></div>
+          <span>Basic savings account<br>(~0.5%/yr)</span>
+        </div>
+        <div class="calc-bar invested">
+          <b id="calcInvest">S$0</b>
+          <div class="bar-col" id="barInvest" style="height:6px"></div>
+          <span>Invested, diversified<br>(~5%/yr, long-term average)</span>
+        </div>
+      </div>
+      <p class="calc-note">Illustration only &mdash; 5% is a long-term average for diversified investing, not a promise. Real returns swing up and down year to year, which is exactly what the next section shows.</p>
+    </div>
+
+    <div class="callout callout-info" style="margin-top:20px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <span><b>The three rules that matter:</b> start early (compounding needs time), only invest money you won&rsquo;t need for 5 years, and keep 3&ndash;6 months of expenses as emergency savings first. In Singapore you can start from S$100/month.</span>
+    </div>
+  </div></section>
+
+  <section class="sec" id="risk"><div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Risk and returns</span>
+      <h2>What S$1,000 could look like after one year.</h2>
+      <p>Every investment trades safety for growth. Here&rsquo;s the same S$1,000 on each rung of the ladder, in a typical good year and a typical bad year &mdash; so you can feel the difference, not just read about it.</p>
+    </div>
+
+    <div class="ladder">
+      <div class="rung reveal">
+        <div class="rung-info">
+          <span class="risk-label risk-low"><span class="dots"><i class="on"></i><i></i><i></i></span>Very low risk</span>
+          <h3>Government-backed savings</h3>
+          <p>Singapore Savings Bonds and T-bills. The Government guarantees your principal &mdash; even in a terrible market year, you don&rsquo;t lose.</p>
+          <span class="eg">e.g. SSB from S$500 &middot; T-bills from S$1,000</span>
+        </div>
+        <div class="range-viz">
+          <span class="range-cap">S$1,000 after one year</span>
+          <div class="range-row"><span class="lab">Good year</span><div class="range-track"><div class="range-fill good" style="width:52%"></div></div><b>&asymp;S$1,033</b></div>
+          <div class="range-row"><span class="lab">Bad year</span><div class="range-track"><div class="range-fill good" style="width:51%"></div></div><b>&asymp;S$1,028</b></div>
+        </div>
+      </div>
+
+      <div class="rung reveal">
+        <div class="rung-info">
+          <span class="risk-label risk-low"><span class="dots"><i class="on"></i><i class="on"></i><i></i></span>Low risk</span>
+          <h3>Bond funds</h3>
+          <p>You lend money to governments and companies through one fund. Calmer than stocks, but prices dip when interest rates rise.</p>
+          <span class="eg">e.g. ABF Singapore Bond ETF (A35)</span>
+        </div>
+        <div class="range-viz">
+          <span class="range-cap">S$1,000 after one year</span>
+          <div class="range-row"><span class="lab">Good year</span><div class="range-track"><div class="range-fill good" style="width:54%"></div></div><b>&asymp;S$1,070</b></div>
+          <div class="range-row"><span class="lab">Bad year</span><div class="range-track"><div class="range-fill bad" style="width:47%"></div></div><b>&asymp;S$940</b></div>
+        </div>
+      </div>
+
+      <div class="rung reveal">
+        <div class="rung-info">
+          <span class="risk-label risk-med"><span class="dots"><i class="on"></i><i class="on"></i><i></i></span>Moderate risk</span>
+          <h3>Broad market ETFs</h3>
+          <p>One fund holding many companies &mdash; the STI ETF holds Singapore&rsquo;s top 30. Falls hurt, but 29 other companies cushion any single disaster. This is the classic long-term core.</p>
+          <span class="eg">e.g. STI ETF (ES3/G3B) &middot; from ~S$100/month</span>
+        </div>
+        <div class="range-viz">
+          <span class="range-cap">S$1,000 after one year</span>
+          <div class="range-row"><span class="lab">Good year</span><div class="range-track"><div class="range-fill good" style="width:60%"></div></div><b>&asymp;S$1,200</b></div>
+          <div class="range-row"><span class="lab">Bad year</span><div class="range-track"><div class="range-fill bad" style="width:38%"></div></div><b>&asymp;S$750</b></div>
+        </div>
+      </div>
+
+      <div class="rung reveal">
+        <div class="rung-info">
+          <span class="risk-label risk-high"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i></span>High risk</span>
+          <h3>One single stock</h3>
+          <p>All your eggs in one company. If DBS has a great year, you win big. If your one company stumbles &mdash; scandal, bad earnings, lawsuit &mdash; nothing cushions you.</p>
+          <span class="eg">e.g. one counter only: DBS, Singtel, a REIT...</span>
+        </div>
+        <div class="range-viz">
+          <span class="range-cap">S$1,000 after one year</span>
+          <div class="range-row"><span class="lab">Good year</span><div class="range-track"><div class="range-fill good" style="width:70%"></div></div><b>&asymp;S$1,400</b></div>
+          <div class="range-row"><span class="lab">Bad year</span><div class="range-track"><div class="range-fill bad" style="width:28%"></div></div><b>&asymp;S$550</b></div>
+        </div>
+      </div>
+
+      <div class="rung reveal">
+        <div class="rung-info">
+          <span class="risk-label risk-high"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i></span>Very high risk</span>
+          <h3>Crypto, leverage &amp; hype coins</h3>
+          <p>Prices driven by hype, not earnings. Doubling is possible; losing almost everything is just as possible &mdash; and &ldquo;guaranteed win&rdquo; versions are outright scams.</p>
+          <span class="eg">Not beginner territory. Try it safely in the Practice Lab instead.</span>
+        </div>
+        <div class="range-viz">
+          <span class="range-cap">S$1,000 after one year</span>
+          <div class="range-row"><span class="lab">Good year</span><div class="range-track"><div class="range-fill good" style="width:100%"></div></div><b>S$2,000+</b></div>
+          <div class="range-row"><span class="lab">Bad year</span><div class="range-track"><div class="range-fill bad" style="width:10%"></div></div><b>&asymp;S$200</b></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="disclaimer">Illustrative ranges based on how these asset types have historically behaved &mdash; not predictions, not guarantees. Any single year can be better or worse.</p>
+
+    <div class="callout callout-warn" style="margin-top:16px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4M12 17h.01"/></svg>
+      <span><b>How to pick your rung:</b> ask when you need the money back, and how you&rsquo;d feel if it dropped 20% next month. Need it soon or would lose sleep &rarr; stay low. 5+ years and a calm stomach &rarr; broad ETFs make sense for part of it.</span>
+    </div>
+
+    <div class="hero-cta" style="margin-top:20px">
+      <a class="btn btn-primary" href="practice.html">Feel the swings in Market Run</a>
+      <button class="btn btn-ghost prompt-ai" type="button" data-question="Based on my risk comfort and time horizon, which rung of the risk ladder fits me? Explain with Singapore examples.">Which rung fits me? Ask Mento</button>
+    </div>
+  </div></section>
+
+  <section class="sec"><div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Topics</span>
+      <h2>Jump to whatever you need.</h2>
+    </div>
+    <div class="resource-grid">
+      <a class="resource-card" href="where.html">
+        <span class="meta">Singapore</span>
+        <h3>Where to invest</h3>
+        <p>SGX brokers, robo-advisors, monthly plans, and government-backed routes &mdash; all MAS-regulated.</p>
+      </a>
+      <a class="resource-card" href="invest.html">
+        <span class="meta">Products</span>
+        <h3>What beginners can buy</h3>
+        <p>SSBs, T-bills, the STI ETF, and robo portfolios &mdash; with minimums, fees, and honest downsides.</p>
+      </a>
+      <a class="resource-card" href="smart-picks.html">
+        <span class="meta">Portfolios</span>
+        <h3>Building a simple portfolio</h3>
+        <p>Example splits for S$500 with reasons, risks, and platform routes.</p>
+      </a>
+      <a class="resource-card" href="sources-safety.html">
+        <span class="meta">Safety</span>
+        <h3>Avoiding scams</h3>
+        <p>The red flags and the 30-second MAS check that protects every dollar you&rsquo;ll invest.</p>
+      </a>
+      <a class="resource-card" href="learning-room.html">
+        <span class="meta">Quiz &middot; earn XP</span>
+        <h3>Knowledge quiz</h3>
+        <p>Ten questions, instant explanations, and XP for finishing. Retake it any time.</p>
+      </a>
+      <a class="resource-card" href="library.html">
+        <span class="meta">Glossary</span>
+        <h3>Term library</h3>
+        <p>Every investing word you keep seeing, explained in one plain sentence. Searchable.</p>
+      </a>
+      <a class="resource-card" href="watch.html">
+        <span class="meta">Videos</span>
+        <h3>Watch &amp; learn</h3>
+        <p>Warren Buffett&rsquo;s simplest advice, ETF basics, and SGX&rsquo;s own market videos.</p>
+      </a>
+      <a class="resource-card" href="more.html">
+        <span class="meta">Guides &amp; books</span>
+        <h3>Go deeper</h3>
+        <p>Official Singapore guides and four beginner-friendly books worth your time.</p>
+      </a>
+      <button class="resource-card prompt-ai" type="button" style="text-align:left;cursor:pointer;font-family:inherit" data-question="Look at my profile and quiz level, and recommend what I should learn next on MoneyMentor.">
+        <span class="meta">AI coach</span>
+        <h3>Not sure where to start?</h3>
+        <p>Ask Mento to look at your level and pick a topic for you.</p>
+      </button>
+    </div>
+  </div></section>
+</main>
+
+<footer class="site-footer"><div class="wrap">
+  <div class="footer-grid">
+    <div>
+      <div class="brand"><svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0E6E52"/><path d="M8 21V12l4 5 4-7 4 6 4-4v9" stroke="#7BE6A8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="10" r="2" fill="#7BE6A8"/></svg>MoneyMentor</div>
+      <p class="footer-note">Free financial education for young Singaporeans. Not licensed financial advice, and never a guarantee of returns. Check any firm on the MAS Investor Alert List before investing real money.</p>
+    </div>
+    <nav class="footer-links" aria-label="Footer">
+      <a href="learn.html">Learn</a>
+      <a href="practice.html">Practice Lab</a>
+      <a href="market.html">Market</a>
+      <a href="sources-safety.html">Sources &amp; safety</a>
+      <a href="profile.html">Profile</a>
+    </nav>
+  </div>
+  <p class="footer-note">&copy; 2026 MoneyMentor &middot; Investing, minus the jargon.</p>
+</div></footer>
+
+<script src="assets/app.js" defer></script>
+
+<script>
+(function () {
+  "use strict";
+  const calc = document.getElementById("growthCalc");
+  if (!calc) return;
+
+  let monthly = 100;
+  let years = 10;
+  let hasPlayed = false;
+
+  const yearsInput = document.getElementById("calcYears");
+  const yearsLabel = document.getElementById("calcYearsLabel");
+  const segButtons = calc.querySelectorAll("[data-monthly]");
+
+  const fmt = (n) => "S$" + Math.round(n).toLocaleString("en-SG");
+
+  function futureValue(monthlyAmount, annualRate, totalYears) {
+    const r = annualRate / 12;
+    const n = totalYears * 12;
+    if (r === 0) return monthlyAmount * n;
+    return monthlyAmount * ((Math.pow(1 + r, n) - 1) / r);
+  }
+
+  function render() {
+    const saved = monthly * 12 * years;
+    const bank = futureValue(monthly, 0.005, years);
+    const invested = futureValue(monthly, 0.05, years);
+    const max = invested;
+    const maxPx = 150;
+
+    document.getElementById("calcSaved").textContent = fmt(saved);
+    document.getElementById("calcBank").textContent = fmt(bank);
+    document.getElementById("calcInvest").textContent = fmt(invested);
+    document.getElementById("barSaved").style.height = Math.max(8, (saved / max) * maxPx) + "px";
+    document.getElementById("barBank").style.height = Math.max(8, (bank / max) * maxPx) + "px";
+    document.getElementById("barInvest").style.height = maxPx + "px";
+    yearsLabel.textContent = years + (years === 1 ? " year" : " years");
+  }
+
+  function played() {
+    if (hasPlayed) return;
+    hasPlayed = true;
+    window.mmAddXp?.(20, "calc-play", "Played with compounding");
+  }
+
+  segButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      monthly = Number(button.dataset.monthly);
+      segButtons.forEach((b) => b.setAttribute("aria-pressed", String(b === button)));
+      played();
+      render();
+    });
+  });
+
+  yearsInput.addEventListener("input", () => {
+    years = Number(yearsInput.value);
+    played();
+    render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
