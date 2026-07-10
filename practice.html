@@ -587,8 +587,7 @@
     byId("reportTitle").textContent = ret >= 0 ? "You grew your stash." : "Tough year - but you learned.";
     renderBadges(byId("reportBadges"));
     byId("reportLesson").innerHTML = lessonText(finalValue);
-    byId("askCoachBtn").dataset.question =
-      `Review my MoneyMentor Market Run year. I finished with ${fmt(finalValue)} from S$1,000, made ${game.trades} trades, collected ${fmt(game.dividendsTotal)} in dividends, and the do-nothing STI ETF benchmark was ${fmt(etfBench())}. What should I learn from this? Explain, don't tell me what to trade.`;
+    byId("askCoachBtn").dataset.question = buildCoachReviewQuestion(finalValue, ret);
     window.scrollTo({ top: 0, behavior: "smooth" });
     window.mmAddXp?.(60, null, "Finished a Market Run year");
     if (game.badges.length) window.mmAddXp?.(game.badges.length * 10, null, "");
@@ -597,6 +596,25 @@
       if (finalValue > best) localStorage.setItem(bestKey, String(Math.round(finalValue)));
     } catch {}
     persistGame(false);
+  }
+
+  function buildCoachReviewQuestion(finalValue, ret) {
+    const behaviour = [];
+    if (game.everBoughtMoon) behaviour.push("bought the MoonCoin hype asset" + (game.soldMoonBeforeRug ? " but sold before the rug pull" : " and held it"));
+    else behaviour.push("never touched the MoonCoin hype asset");
+    if (game.dip) behaviour.push(game.heldThroughCrash ? "held through the market crash" : "sold during the market crash");
+    if (game.trades > 8) behaviour.push(`traded frequently (${game.trades} trades)`);
+    else if (game.trades <= 3) behaviour.push(`traded calmly (only ${game.trades} trades)`);
+    if (game.maxAssetsHeld >= 3) behaviour.push(`diversified across up to ${game.maxAssetsHeld} assets`);
+    const tradeSummary = (game.tradeLog || []).slice(0, 40)
+      .map((t) => `M${t.month} ${t.action} ${t.asset} ${fmt(t.amountSgd)}`)
+      .join("; ") || "no trades made";
+    return `Coach review of my Market Run year. ` +
+      `Final: ${fmt(finalValue)} from S$1,000 (${(ret >= 0 ? "+" : "") + ret.toFixed(1)}%). ` +
+      `Benchmarks: do-nothing STI ETF ${fmt(etfBench())}, bank savings ${fmt(bankBench())}. ` +
+      `Dividends collected: ${fmt(game.dividendsTotal)}. Badges earned: ${game.badges.join(", ") || "none"}. ` +
+      `My behaviour: ${behaviour.join("; ")}. ` +
+      `Trade log: ${tradeSummary}.`;
   }
 
   function lessonText(finalValue) {
