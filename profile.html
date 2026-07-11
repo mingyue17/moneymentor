@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet">
 <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body data-page="profile">
@@ -22,6 +22,7 @@
     <a href="learn.html" data-nav="learn">Learn</a>
     <a href="practice.html" data-nav="practice">Practice</a>
     <a href="market.html" data-nav="market">Market</a>
+    <a href="chat.html" data-nav="chat">Ask AI</a>
   </nav>
   <div class="header-actions">
     <button class="btn btn-primary open-chat" type="button">Ask<span class="header-chat-label">&nbsp;MoneyMentor</span></button>
@@ -69,6 +70,27 @@
             </select>
           </div>
         </div>
+        <div class="form-grid">
+          <div class="field">
+            <label for="profileEmergencyFund">Emergency fund</label>
+            <select id="profileEmergencyFund" name="emergencyFund">
+              <option value="Not yet">Not yet</option>
+              <option value="Partly ready">Partly ready</option>
+              <option value="Ready">Ready</option>
+            </select>
+            <small>Helps the portfolio page avoid risky suggestions too early.</small>
+          </div>
+          <div class="field">
+            <label for="profileSetAside">Can set aside now</label>
+            <select id="profileSetAside" name="setAside">
+              <option value="S$100 monthly">S$100 monthly</option>
+              <option value="S$300 monthly">S$300 monthly</option>
+              <option value="S$500 now">S$500 now</option>
+              <option value="S$1,000+ now">S$1,000+ now</option>
+              <option value="Not sure">Not sure</option>
+            </select>
+          </div>
+        </div>
         <fieldset class="choice-group" style="border:none">
           <legend><span>Investing experience</span></legend>
           <div class="choice-row">
@@ -111,6 +133,8 @@
           <div class="summary-row"><span>Risk comfort</span><b id="profileStatusRisk">Low</b></div>
           <div class="summary-row"><span>Time horizon</span><b id="profileStatusHorizon">6 months</b></div>
           <div class="summary-row"><span>Main goal</span><b id="profileStatusGoal">Safety first</b></div>
+          <div class="summary-row"><span>Emergency fund</span><b id="profileStatusEmergency">Not yet</b></div>
+          <div class="summary-row"><span>Set aside</span><b id="profileStatusSetAside">S$100 monthly</b></div>
         </div>
       </aside>
 
@@ -118,8 +142,7 @@
         <span class="eyebrow">Your progress</span>
         <div class="profile-summary" id="profileLearning" style="margin-top:12px"></div>
         <div class="hero-cta" style="margin-top:16px">
-          <a class="btn btn-primary btn-sm" href="practice.html">Earn XP in Market Run</a>
-          <a class="btn btn-ghost btn-sm" href="learn.html">Keep learning</a>
+          <a class="btn btn-primary btn-sm" id="profileNextStep" href="learn.html">Continue learning</a>
         </div>
       </aside>
 
@@ -130,7 +153,11 @@
           <label class="switch"><input id="beginnerModeToggle" type="checkbox" checked><span class="slider"></span><span class="visually-hidden">Beginner mode</span></label>
         </div>
         <div class="setting-row">
-          <div><strong>Reset progress</strong><p>Clears XP, streak, quiz scores, and Practice Lab history. Keeps your profile.</p></div>
+          <div><strong>Download learning evidence</strong><p>Export your profile, checkpoints, quiz attempts, and Practice Lab runs as a CSV.</p></div>
+          <button class="mini-btn" id="exportEvidenceBtn" type="button">Export CSV</button>
+        </div>
+        <div class="setting-row">
+          <div><strong>Reset learning progress</strong><p>Clears quiz scores, lesson progress, and Practice Lab history. Keeps your profile.</p></div>
           <button class="mini-btn" id="resetLearning" type="button">Reset</button>
         </div>
       </aside>

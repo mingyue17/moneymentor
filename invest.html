@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>What beginners can buy - MoneyMentor</title>
-<meta name="description" content="Four solid first investments for beginners in Singapore - SSBs, T-bills, the STI ETF, and robo portfolios - with minimums, horizons, fees, and downsides.">
+<title>What to buy - MoneyMentor</title>
+<meta name="description" content="A clear beginner recommendation tool for what to buy in Singapore: SSBs, T-bills, STI ETFs, robo portfolios, REITs and blue chips with risks explained.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet">
 <link rel="stylesheet" href="assets/styles.css">
 </head>
-<body data-page="learn">
+<body data-page="learn" data-lesson="buy">
 <a class="skip-link" href="#main">Skip to content</a>
 
 <header class="site-header"><div class="wrap header-inner">
@@ -22,6 +22,7 @@
     <a href="learn.html" data-nav="learn">Learn</a>
     <a href="practice.html" data-nav="practice">Practice</a>
     <a href="market.html" data-nav="market">Market</a>
+    <a href="chat.html" data-nav="chat">Ask AI</a>
   </nav>
   <div class="header-actions">
     <button class="btn btn-primary open-chat" type="button">Ask<span class="header-chat-label">&nbsp;MoneyMentor</span></button>
@@ -34,11 +35,16 @@
 
   <section class="page-head"><div class="wrap">
     <span class="step-tag">Learn &middot; What to buy</span>
-    <h1>Four solid options for beginners.</h1>
-    <p>Ordered from safest to most growth. A common approach: keep money you&rsquo;ll need soon in the safe options, and invest longer-term money for growth. None of these are guaranteed to make money.</p>
+    <h1>Get a clear first recommendation.</h1>
+    <p>Use this page when you are asking, &ldquo;What should I actually buy first?&rdquo; The quiz gives one clear suggestion, then the comparison below shows the analysis and risks.</p>
   </div></section>
 
   <section class="sec"><div class="wrap">
+    <div id="buyQuiz" style="margin-bottom:26px"></div>
+    <div class="callout callout-info" style="margin-bottom:24px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <span><b>Default answer:</b> if the money is for the next 6-12 months, start with SSBs or T-bills. If it can stay invested for 5+ years and you can handle dips, a broad ETF route is usually the cleaner growth choice.</span>
+    </div>
     <div class="invest-grid">
 
       <div class="inv-card reveal">
@@ -113,7 +119,7 @@
     </div>
 
     <div class="step-footer">
-      <a class="btn btn-ghost" href="where.html">Back: Where to invest</a>
+      <a class="btn btn-ghost" href="where.html#whereQuiz">Back: Where to invest</a>
       <a class="btn btn-primary" href="smart-picks.html">Next: Building a simple portfolio</a>
     </div>
   </div></section>

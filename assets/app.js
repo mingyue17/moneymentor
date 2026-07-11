@@ -1,7 +1,7 @@
 /* ============================================================
    MoneyMentor shared application script
-   Modules: storage, profile, xp + streak (Mento), navigation,
-   dashboard, glossary, quiz, news decoder, chat.
+   Modules: storage, profile, navigation, lessons, dashboard,
+   glossary, quiz, market news, chat.
    Each module activates only when its elements exist on the page.
    ============================================================ */
 
@@ -15,10 +15,11 @@ const PENDING_QUESTION_KEY = "mm_pending_question";
 const BEGINNER_MODE_KEY = "mm_beginner_mode";
 const STORAGE_STAMP_KEY = "mm_storage_last_seen";
 const PRACTICE_KEY = "mm_practice_lab_state";
-const XP_KEY = "mm_xp_state";
+const LESSONS_KEY = "mm_lessons_done";
 const MARKET_RUN_STATE_KEY = "mm_marketrun_state";
 const MARKET_RUN_BEST_KEY = "mm_marketrun_best";
 const PULSE_OPENED_KEY = "mm_market_pulse_opened";
+const MARKET_DECODER_KEY = "mm_market_decoder_decoded";
 const STORAGE_EXPIRY_DAYS = 180;
 
 // n8n profile-save webhook (production URL; workflow must be active in n8n).
@@ -27,9 +28,12 @@ const CHAT_WEBHOOK_URL = "https://n8ngc.codeblazar.org/webhook/6b73ce01-53e9-404
 
 const MANAGED_STORAGE_KEYS = [
   SESSION_KEY, PROFILE_KEY, PROGRESS_KEY, PENDING_QUESTION_KEY,
-  BEGINNER_MODE_KEY, STORAGE_STAMP_KEY, PRACTICE_KEY, XP_KEY,
+  BEGINNER_MODE_KEY, STORAGE_STAMP_KEY, PRACTICE_KEY, LESSONS_KEY,
   MARKET_RUN_STATE_KEY, MARKET_RUN_BEST_KEY,
-  PULSE_OPENED_KEY, "mm_market_pulse_popups", "mm_lessons_done"
+  PULSE_OPENED_KEY, MARKET_DECODER_KEY, "mm_market_pulse_popups",
+  "mm_chats_v1", "mm_quiz_history", "mm_run_history",
+  "mm_wizard_result", "mm_where_quiz_result", "mm_buy_quiz_result",
+  "mm_watchlist", "mm_run_best_v2", "mm_pulse_toast_seen", "mm_market_run_v2"
 ];
 
 function applyStorageExpiry() {
@@ -101,6 +105,8 @@ function defaultProfile() {
     riskComfort: "Low",
     timeHorizon: "6 months",
     goal: "Safety first",
+    emergencyFund: "Not yet",
+    setAside: "S$100 monthly",
     profileMode: "guest",
     createdAt: now,
     updatedAt: now
@@ -144,6 +150,8 @@ function syncProfileToN8n(profile) {
     risk_comfort: profile.riskComfort,
     time_horizon: profile.timeHorizon,
     main_goal: profile.goal,
+    emergency_fund: profile.emergencyFund,
+    set_aside: profile.setAside,
     created_at: profile.createdAt,
     updated_at: profile.updatedAt
   };
@@ -168,6 +176,8 @@ function updateProfileUi(profile = getProfile()) {
   setText("profileStatusRisk", profile.riskComfort);
   setText("profileStatusHorizon", profile.timeHorizon);
   setText("profileStatusGoal", profile.goal);
+  setText("profileStatusEmergency", profile.emergencyFund);
+  setText("profileStatusSetAside", profile.setAside);
 
   document.querySelectorAll("[data-profile-name]").forEach((el) => {
     el.textContent = displayName;
@@ -196,117 +206,6 @@ function applyBeginnerMode() {
   });
 }
 
-/* ---------- XP, levels, streak (Mento the coach) ---------- */
-const LEVEL_TITLES = [
-  "Total Newbie", "Kopi-Money Saver", "Steady Starter", "Habit Builder",
-  "Diversifier", "Blue-Chip Brain", "Market Navigator", "Compound Captain",
-  "Zen Investor", "Mentor Material"
-];
-
-const MENTO_TIPS = [
-  "Time in the market beats timing the market. Boring, but true.",
-  "Before any investment: can you explain what could go wrong with it?",
-  "S$100 a month from age 20 usually beats S$300 a month from age 30. Compounding is patient.",
-  "A high dividend yield can be a warning sign, not a gift. Check why it's high.",
-  "Guaranteed returns plus high returns equals scam. Every single time.",
-  "Diversification is the only free lunch in investing. One stock is a bet; thirty is a portfolio.",
-  "Red days are the entry fee for long-term returns. Panic-selling turns them into real losses.",
-  "Fees look tiny but compound just like returns do - against you.",
-  "Check the MAS Investor Alert List before trusting anyone with your money. Takes 30 seconds.",
-  "Emergency fund first. Invest only money you won't need for 5 years.",
-  "Nobody on TikTok knows next month's prices. Including the confident ones.",
-  "The STI ETF holds 30 companies in one buy. Diversification for one kopi-decision's effort."
-];
-
-function getXpState() {
-  const state = readJson(XP_KEY, null);
-  if (state && typeof state.xp === "number") {
-    return { xp: 0, streak: 0, lastVisit: "", awards: {}, ...state };
-  }
-  return { xp: 0, streak: 0, lastVisit: "", awards: {} };
-}
-
-function saveXpState(state) {
-  try { localStorage.setItem(XP_KEY, JSON.stringify(state)); } catch {}
-}
-
-function levelInfo(xp) {
-  let level = 1;
-  let base = 0;
-  let need = 100;
-  while (xp >= base + need && level < LEVEL_TITLES.length) {
-    base += need;
-    level += 1;
-    need = 100 + (level - 1) * 75;
-  }
-  const into = Math.max(0, xp - base);
-  return {
-    level,
-    title: LEVEL_TITLES[level - 1],
-    into,
-    need,
-    pct: level >= LEVEL_TITLES.length ? 100 : Math.min(100, Math.round((into / need) * 100))
-  };
-}
-
-function addXp(amount, onceKey = null, reason = "") {
-  const state = getXpState();
-  if (onceKey) {
-    if (state.awards[onceKey]) return state;
-    state.awards[onceKey] = true;
-  }
-  const before = levelInfo(state.xp).level;
-  state.xp += Math.round(amount);
-  saveXpState(state);
-  const after = levelInfo(state.xp);
-  if (after.level > before) {
-    showToast(`Level up! You're now Level ${after.level}: ${after.title}`);
-  } else if (reason) {
-    showToast(`+${Math.round(amount)} XP - ${reason}`);
-  }
-  renderXp();
-  return state;
-}
-// Exposed for the Practice Lab game script.
-window.mmAddXp = addXp;
-
-function trackDailyVisit() {
-  const state = getXpState();
-  const today = new Date().toISOString().slice(0, 10);
-  if (state.lastVisit === today) return;
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-  state.streak = state.lastVisit === yesterday ? (state.streak || 0) + 1 : 1;
-  state.lastVisit = today;
-  saveXpState(state);
-  addXp(10, null, state.streak > 1 ? `Day ${state.streak} streak` : "Welcome back");
-}
-
-function mentoTipForToday() {
-  const dayIndex = Math.floor(Date.now() / 86400000);
-  return MENTO_TIPS[dayIndex % MENTO_TIPS.length];
-}
-
-function renderXp() {
-  const state = getXpState();
-  const info = levelInfo(state.xp);
-  const setText = (id, text) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = text;
-  };
-  setText("xpLevelNum", `Level ${info.level}`);
-  setText("xpLevelTitle", info.title);
-  setText("xpCount", info.level >= LEVEL_TITLES.length ? `${state.xp} XP - max level reached` : `${info.into} / ${info.need} XP to Level ${info.level + 1}`);
-  setText("xpTotal", `${state.xp} XP`);
-  setText("xpStreak", state.streak > 1 ? `${state.streak}-day streak` : "1-day streak");
-  const fill = document.getElementById("xpBarFill");
-  if (fill) fill.style.width = `${info.pct}%`;
-  const tip = document.getElementById("mentoTip");
-  if (tip && !tip.dataset.filled) {
-    tip.textContent = mentoTipForToday();
-    tip.dataset.filled = "yes";
-  }
-}
-
 /* ---------- navigation ---------- */
 const BOTTOM_NAV_ITEMS = [
   { page: "home", label: "Home", href: "index.html", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>' },
@@ -322,6 +221,24 @@ function setupNavigation() {
   document.querySelectorAll(".site-nav a[data-nav]").forEach((link) => {
     if (link.dataset.nav === currentPage) link.setAttribute("aria-current", "page");
   });
+
+  const learnLink = document.querySelector('.site-nav a[data-nav="learn"]');
+  if (learnLink && !learnLink.closest(".learn-nav-menu")) {
+    const menu = document.createElement("div");
+    menu.className = "learn-nav-menu";
+    learnLink.parentNode.insertBefore(menu, learnLink);
+    menu.appendChild(learnLink);
+    learnLink.setAttribute("aria-haspopup", "true");
+    const panel = document.createElement("div");
+    panel.className = "learn-nav-panel";
+    panel.innerHTML = `
+      <a href="learn.html"><b>Extra Info</b><span>Basics, risk, scams</span></a>
+      <a href="where.html#whereQuiz"><b>Where to invest</b><span>Route quiz</span></a>
+      <a href="invest.html#buyQuiz"><b>What to buy</b><span>Clear first pick</span></a>
+      <a href="smart-picks.html"><b>Build a portfolio</b><span>From your profile</span></a>
+      <a href="learning-room.html"><b>Quiz &amp; reference</b><span>Quiz, videos, terms, guides</span></a>`;
+    menu.appendChild(panel);
+  }
 
   const navToggle = document.getElementById("navToggle");
   const navLinks = document.getElementById("navLinks");
@@ -345,7 +262,7 @@ function setupNavigation() {
     });
   }
 
-  if (!document.querySelector(".bottom-nav")) {
+  if (currentPage !== "chat" && !document.querySelector(".bottom-nav")) {
     const bottomNav = document.createElement("nav");
     bottomNav.className = "bottom-nav";
     bottomNav.setAttribute("aria-label", "Primary");
@@ -356,13 +273,61 @@ function setupNavigation() {
   }
 }
 
-/* ---------- home dashboard ---------- */
-function greetingForNow() {
-  const hour = new Date().getHours();
-  if (hour < 5) return "Up late";
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
+/* ---------- learning path ---------- */
+/* Optional, repeatable self-tests on lesson pages.
+   No gating, no storage, retry any time - purely for the reader. */
+const SELF_TESTS = {
+  basics: { q: "Which matters more for a beginner's long-term result?", options: ["Picking the perfect day to buy", "Time in the market and compounding", "Checking prices every hour"], answer: 1, why: "Starting early and staying invested usually beats trying to time entries." },
+  risk: { q: "An offer promises high returns with zero risk. What is it?", options: ["A great beginner deal", "Normal for bonds", "A scam red flag - that combination does not exist"], answer: 2, why: "Every real investment sits on the risk-return line. 'High return, no risk' only exists in scams." },
+  where: { q: "Which route is the most hands-off for a nervous beginner?", options: ["Direct SGX stock picking", "A robo-advisor portfolio", "A Telegram signal group"], answer: 1, why: "Robo-advisors build and rebalance a diversified portfolio for you from low minimums." },
+  buy: { q: "Money you need back in 6 months best fits which option?", options: ["Singapore Savings Bonds / T-bills", "A single hot stock", "MoonCoin-style crypto"], answer: 0, why: "A short horizon means staying low on the risk ladder - capital protection first." },
+  portfolio: { q: "Why is an STI ETF usually safer than one bank stock?", options: ["It is government guaranteed", "It spreads money across ~30 companies", "It never falls in price"], answer: 1, why: "Diversification - one company's bad year hurts less when you own thirty." },
+  scams: { q: "Before sending money to any investment firm, you should first...", options: ["Check the MAS Investor Alert List and licence", "Check how nice their website looks", "Ask the person promoting it"], answer: 0, why: "Official verification on MAS beats any promise or polished website." }
+};
+
+function renderSelfTest(id, mountEl) {
+  const test = SELF_TESTS[id];
+  if (!test || !mountEl) return;
+  mountEl.innerHTML = `
+    <details class="selftest">
+      <summary>Quick self-test - try it as many times as you like</summary>
+      <div class="quiz-shell" style="margin:12px 0 4px">
+        <div class="quiz-question">${test.q}</div>
+        <div class="quiz-options"></div>
+        <div class="quiz-explain" role="status" aria-live="polite"></div>
+      </div>
+    </details>`;
+  const optionsBox = mountEl.querySelector(".quiz-options");
+  const explain = mountEl.querySelector(".quiz-explain");
+  test.options.forEach((opt, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "quiz-option";
+    b.textContent = opt;
+    b.addEventListener("click", () => {
+      optionsBox.querySelectorAll(".quiz-option").forEach((btn) => btn.classList.remove("correct", "wrong"));
+      if (i === test.answer) {
+        b.classList.add("correct");
+        explain.textContent = "Correct. " + test.why;
+      } else {
+        b.classList.add("wrong");
+        explain.textContent = "Not quite - try again. " + test.why;
+      }
+    });
+    optionsBox.appendChild(b);
+  });
+}
+
+function setupSelfTests() {
+  const lessonId = document.body.dataset.lesson;
+  if (lessonId && SELF_TESTS[lessonId]) {
+    const footer = document.querySelector(".step-footer");
+    const mount = document.createElement("div");
+    if (footer) footer.parentNode.insertBefore(mount, footer);
+    else document.querySelector("main .wrap")?.appendChild(mount);
+    renderSelfTest(lessonId, mount);
+  }
+  document.querySelectorAll("[data-selftest]").forEach((el) => renderSelfTest(el.dataset.selftest, el));
 }
 
 function renderDashboardStats() {
@@ -379,25 +344,28 @@ function renderDashboardStats() {
 function renderPracticeSummary() {
   const box = document.getElementById("dashPractice");
   if (!box) return;
-  const state = readJson(MARKET_RUN_STATE_KEY, null);
-  const best = Number(localStorage.getItem(MARKET_RUN_BEST_KEY) || 0);
+  const state = readJson("mm_market_run_v2", null);
+  const bests = readJson("mm_run_best_v2", {});
+  const bestKeys = Object.keys(bests);
 
-  if (state && state.inProgress) {
-    const pl = state.startCash ? ((state.portfolioValue / state.startCash - 1) * 100) : 0;
+  if (state && !state.finished) {
+    const pv = state.cash + (state.assets || []).reduce((s, a) => s + a.units * a.price, 0);
+    const pl = state.startCash ? ((pv / state.startCash - 1) * 100) : 0;
     box.innerHTML = `
       <div class="stat-row">
-        <div class="stat-tile"><b>Month ${state.month}/12</b><span>Simulation progress</span></div>
-        <div class="stat-tile"><b>${money(state.portfolioValue)}</b><span>Virtual portfolio</span></div>
+        <div class="stat-tile"><b>Month ${state.month}/${state.months}</b><span>Run in progress</span></div>
+        <div class="stat-tile"><b>${money(pv)}</b><span>Virtual portfolio</span></div>
         <div class="stat-tile"><b class="${pl < 0 ? "loss" : "gain"}">${pl >= 0 ? "+" : ""}${pl.toFixed(1)}%</b><span>Total P/L</span></div>
       </div>
       <div class="hero-cta" style="margin-top:16px"><a class="btn btn-primary btn-sm" href="practice.html">Resume Market Run</a></div>`;
-  } else if (best > 0) {
+  } else if (bestKeys.length) {
+    const top = bestKeys.map((k) => bests[k]).sort((a, b) => b.ratio - a.ratio)[0];
     box.innerHTML = `
-      <p class="dash-empty">Your best Market Run finished at <b>S$${best.toLocaleString("en-SG")}</b> from S$1,000 of virtual cash. Beat it and earn XP on the way.</p>
+      <p class="dash-empty">Your best Market Run finished at <b>${money(top.finalValue)}</b> from ${money(top.startCash)} of virtual cash. Beat it on a harder level?</p>
       <a class="btn btn-primary btn-sm" href="practice.html">Play again</a>`;
   } else {
     box.innerHTML = `
-      <p class="dash-empty">You have not tried the Practice Lab yet. Survive one simulated year of the Singapore market with S$1,000 of pretend money &mdash; dividends, crashes, hype and all. No real money involved.</p>
+      <p class="dash-empty">You have not tried the Practice Lab yet. Survive a simulated market year with virtual money &mdash; five difficulty levels, no real money involved.</p>
       <a class="btn btn-primary btn-sm" href="practice.html">Start practising</a>`;
   }
 }
@@ -408,14 +376,41 @@ function renderDashboardMarket() {
   const opened = getOpenedAlerts();
   const alert = MARKET_ALERTS.find((item) => !opened.includes(item.id)) || MARKET_ALERTS[0];
   box.innerHTML = `
-    <p class="dash-empty">Real headlines with sources and timestamps live on the Market page. Confused by one? The decoder explains why that kind of news moves prices.</p>
-    <span class="news-tag" style="font-family:var(--mono);font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--amber)">Decoder pattern</span>
+    <span class="news-tag" style="font-family:var(--mono);font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--amber)">${alert.label}</span>
     <h3>${alert.title}</h3>
     <p>${alert.short}</p>
-    <div class="hero-cta" style="margin-top:14px">
-      <a class="btn btn-primary btn-sm" href="market.html#news">Today's real news</a>
-      <a class="btn btn-ghost btn-sm" href="market.html#decoder">Open the decoder</a>
-    </div>`;
+    <div class="hero-cta" style="margin-top:14px"><a class="btn btn-ghost btn-sm" href="market.html#news">Read the plain-English version</a></div>`;
+}
+
+function greetingForNow() {
+  const hour = new Date().getHours();
+  if (hour < 5) return "Up late";
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
+
+function exportLearningEvidence() {
+  const profile = getProfile();
+  const progress = getProgress();
+  const whereQuiz = readJson("mm_where_quiz_result", null);
+  const buyQuiz = readJson("mm_buy_quiz_result", null);
+  const watchlist = readJson("mm_watchlist", []);
+  const quizHistory = readJson("mm_quiz_history", []);
+  const runHistory = readJson("mm_run_history", []);
+  const rows = [["record_type", "timestamp", "detail_1", "detail_2", "detail_3"]];
+  rows.push(["profile", profile.updatedAt || "", "risk=" + profile.riskComfort + " horizon=" + profile.timeHorizon, "budget=" + profile.budget, "emergency=" + profile.emergencyFund + " set_aside=" + profile.setAside]);
+  rows.push(["where_quiz", whereQuiz ? whereQuiz.ts : "", whereQuiz ? "lane=" + whereQuiz.laneName : "not_taken", whereQuiz ? "route=" + whereQuiz.route : "", ""]);
+  rows.push(["what_quiz", buyQuiz ? buyQuiz.ts : "", buyQuiz ? "pick=" + buyQuiz.name : "not_taken", buyQuiz ? "risk=" + buyQuiz.risk : "", ""]);
+  rows.push(["quiz_best", new Date().toISOString(), progress.best + "%", "attempts=" + progress.attempts, "level=" + levelFor(progress.best).name]);
+  rows.push(["watchlist", new Date().toISOString(), watchlist.join("|"), "", ""]);
+  quizHistory.forEach((h) => rows.push(["quiz_attempt", h.ts, "score=" + h.score + "%", "weak=" + (h.weakTopics || []).join("|"), ""]));
+  runHistory.forEach((r) => rows.push(["market_run", r.ts, "difficulty=" + r.difficulty + " months=" + r.months, "final=S$" + r.finalValue + " (" + r.stars + "star)", "badges=" + (r.badges || []).join("|")]));
+  const csv = rows.map((row) => row.map((c) => '"' + String(c).replaceAll('"', '""') + '"').join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "moneymentor-learning-evidence.csv"; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 250);
 }
 
 function setupHomeDashboard() {
@@ -424,7 +419,7 @@ function setupHomeDashboard() {
   const profile = getProfile();
   const name = profile.nickname && profile.nickname !== "Guest" ? `, ${profile.nickname}` : "";
   greetEl.textContent = `${greetingForNow()}${name}.`;
-  renderDashboardStats();
+    renderDashboardStats();
   renderPracticeSummary();
   renderDashboardMarket();
 }
@@ -441,9 +436,13 @@ function fillProfileForm(profile = getProfile()) {
   const nickname = document.getElementById("profileNickname");
   const budget = document.getElementById("profileBudget");
   const goal = document.getElementById("profileGoal");
+  const emergencyFund = document.getElementById("profileEmergencyFund");
+  const setAside = document.getElementById("profileSetAside");
   if (nickname) nickname.value = profile.profileMode === "guest" ? "" : profile.nickname || "";
   if (budget) budget.value = profile.budget || "S$500";
   if (goal) goal.value = profile.goal || "Safety first";
+  if (emergencyFund) emergencyFund.value = profile.emergencyFund || "Not yet";
+  if (setAside) setAside.value = profile.setAside || "S$100 monthly";
   setCheckedValue("beginnerLevel", profile.beginnerLevel || "Noob");
   setCheckedValue("riskComfort", profile.riskComfort || "Low");
   setCheckedValue("timeHorizon", profile.timeHorizon || "6 months");
@@ -460,6 +459,8 @@ function profileFromForm(mode = "profile") {
     riskComfort: String(data.get("riskComfort") || "Low"),
     timeHorizon: String(data.get("timeHorizon") || "6 months"),
     goal: String(data.get("goal") || "Safety first"),
+    emergencyFund: String(data.get("emergencyFund") || "Not yet"),
+    setAside: String(data.get("setAside") || "S$100 monthly"),
     profileMode: mode
   };
 }
@@ -475,15 +476,22 @@ function renderProfileProgress() {
   const box = document.getElementById("profileLearning");
   if (!box) return;
   const progress = getProgress();
-  const xpState = getXpState();
-  const info = levelInfo(xpState.xp);
+  const where = readJson("mm_where_quiz_result", null);
+  const buy = readJson("mm_buy_quiz_result", null);
+  const bests = readJson("mm_run_best_v2", {});
+  const bestEntries = Object.keys(bests).length;
   box.innerHTML = `
-    <div class="summary-row"><span>Mentor level</span><b>Lv ${info.level} - ${info.title}</b></div>
-    <div class="summary-row"><span>Total XP</span><b>${xpState.xp} XP</b></div>
-    <div class="summary-row"><span>Visit streak</span><b>${xpState.streak > 1 ? `${xpState.streak} days` : "1 day"}</b></div>
-    <div class="summary-row"><span>Quiz level</span><b>${levelFor(progress.best).name}</b></div>
+    <div class="summary-row"><span>Learning level</span><b>${levelFor(progress.best).name}</b></div>
     <div class="summary-row"><span>Best quiz score</span><b>${progress.best}%</b></div>
-    <div class="summary-row"><span>Quiz attempts</span><b>${progress.attempts}</b></div>`;
+    <div class="summary-row"><span>Quiz attempts</span><b>${progress.attempts}</b></div>
+    <div class="summary-row"><span>Where quiz</span><b>${where ? where.laneName : "Not taken yet"}</b></div>
+    <div class="summary-row"><span>What quiz</span><b>${buy ? buy.name : "Not taken yet"}</b></div>
+    <div class="summary-row"><span>Market Run personal bests</span><b>${bestEntries ? bestEntries + " difficulty level" + (bestEntries > 1 ? "s" : "") : "No runs yet"}</b></div>`;
+  const nextLink = document.getElementById("profileNextStep");
+  if (nextLink) {
+    nextLink.href = where ? "smart-picks.html" : "where.html#whereQuiz";
+    nextLink.textContent = where ? "Build your profile portfolio" : "Take the Where quiz";
+  }
 }
 
 function setupProfilePage() {
@@ -494,7 +502,6 @@ function setupProfilePage() {
       event.preventDefault();
       saveProfile(profileFromForm("profile"));
       showProfileSuccess("Profile saved. Your recommendations and chat answers now use these preferences.");
-      addXp(20, "profile-saved", "Profile set up");
       renderProfileProgress();
     });
     const startGuest = document.getElementById("startGuest");
@@ -517,10 +524,9 @@ function setupProfilePage() {
   const resetLearning = document.getElementById("resetLearning");
   if (resetLearning) {
     resetLearning.addEventListener("click", () => {
-      if (!window.confirm("Reset your XP, streak, quiz scores, and Practice Lab history? Your profile details are kept.")) return;
-      [PROGRESS_KEY, XP_KEY, MARKET_RUN_STATE_KEY, MARKET_RUN_BEST_KEY, PULSE_OPENED_KEY, PRACTICE_KEY].forEach((key) => localStorage.removeItem(key));
-      showToast("Progress reset.");
-      renderXp();
+      if (!window.confirm("Reset your quiz scores, lesson progress, and Practice Lab history? Your profile details are kept.")) return;
+      [PROGRESS_KEY, LESSONS_KEY, MARKET_RUN_STATE_KEY, MARKET_RUN_BEST_KEY, PULSE_OPENED_KEY, PRACTICE_KEY, "mm_market_run_v2", "mm_run_best_v2", "mm_run_history", "mm_wizard_result", "mm_where_quiz_result", "mm_buy_quiz_result", "mm_watchlist", "mm_quiz_history", "mm_pulse_toast_seen"].forEach((key) => localStorage.removeItem(key));
+      showToast("Learning progress reset.");
       renderProfileProgress();
     });
   }
@@ -591,16 +597,16 @@ function setupGlossary() {
 
 /* ---------- quiz ---------- */
 const QUIZ = [
-  { level: "Noob", type: "Meaning", q: "What is an ETF?", options: ["A single company share", "A fund traded like a share that can hold many investments", "A guaranteed government savings account", "A bank loan"], answer: 1, why: "An ETF is a fund that trades like a share. It can hold many stocks, bonds, or other assets." },
-  { level: "Noob", type: "Scenario", q: "A beginner has S$500 and is afraid of losing money. Which first route is usually the most safety-focused?", options: ["One trending stock", "Singapore Savings Bonds", "Borrowing money to invest", "A Telegram group promising returns"], answer: 1, why: "For safety-first beginners, SSBs are a sensible starting route because they are backed by the Singapore Government and start from S$500." },
-  { level: "Starter", type: "Meaning", q: "What does diversification mean?", options: ["Buying only one stock", "Spreading money across different investments", "Checking prices every hour", "Selling whenever markets fall"], answer: 1, why: "Diversification spreads risk so one bad performer does not damage the whole portfolio." },
-  { level: "Starter", type: "Scenario", q: "You can add S$100 every month. Which route best matches a steady beginner habit?", options: ["Regular savings plan or monthly ETF investing", "One random stock every month", "Only investing when social media is excited", "Switching platforms weekly"], answer: 0, why: "A regular savings plan or monthly ETF route supports dollar-cost averaging and builds the habit gradually." },
-  { level: "Builder", type: "Meaning", q: "What is a REIT?", options: ["A crypto token", "A listed vehicle that owns income-producing property", "A bank savings account", "A tax form"], answer: 1, why: "A REIT owns income-producing property such as malls, offices, or logistics assets, and often pays distributions." },
-  { level: "Builder", type: "Scenario", q: "A REIT gives a high yield. What should a beginner check before getting excited?", options: ["Only the yield number", "Occupancy, gearing, interest-rate sensitivity, and distribution history", "Whether influencers like it", "Whether the logo looks professional"], answer: 1, why: "High yield can hide risk. Check occupancy, gearing, debt costs, and whether distributions are sustainable." },
-  { level: "Confident", type: "Meaning", q: "What is dollar-cost averaging?", options: ["Investing a fixed amount regularly", "Buying only at the yearly low", "Selling after every gain", "Choosing the cheapest stock"], answer: 0, why: "Dollar-cost averaging means investing a fixed amount regularly instead of trying to time the market." },
-  { level: "Confident", type: "Scenario", q: "The market drops sharply after bad news. What is the most beginner-safe response?", options: ["Panic sell immediately", "Borrow money to buy more instantly", "Review time horizon, diversification, and original reason", "Ignore all risk"], answer: 2, why: "A market drop should trigger calm review, not panic." },
-  { level: "Advanced", type: "Meaning", q: "What does liquidity mean?", options: ["How quickly an investment can be turned into cash", "How famous a company is", "How high the dividend is", "How often news mentions it"], answer: 0, why: "Liquidity is how easily and quickly you can turn an investment into cash." },
-  { level: "Advanced", type: "Scenario", q: "A Telegram group promises 20% monthly returns with no risk. What should MoneyMentor advise?", options: ["Invest quickly", "Treat it as a scam red flag and verify with official sources such as MAS alerts", "Ask friends to join", "Invest a small amount"], answer: 1, why: "Guaranteed high returns with no risk are a major scam warning." }
+  { level: "Noob", topic: "ETFs & funds", lesson: "learn.html#basics", type: "Meaning", q: "What is an ETF?", options: ["A single company share", "A fund traded like a share that can hold many investments", "A guaranteed government savings account", "A bank loan"], answer: 1, why: "An ETF is a fund that trades like a share. It can hold many stocks, bonds, or other assets." },
+  { level: "Noob", topic: "Safe first steps", lesson: "invest.html", type: "Scenario", q: "A beginner has S$500 and is afraid of losing money. Which first route is usually the most safety-focused?", options: ["One trending stock", "Singapore Savings Bonds", "Borrowing money to invest", "A Telegram group promising returns"], answer: 1, why: "For safety-first beginners, SSBs are a sensible starting route because they are backed by the Singapore Government and start from S$500." },
+  { level: "Starter", topic: "Diversification", lesson: "smart-picks.html", type: "Meaning", q: "What does diversification mean?", options: ["Buying only one stock", "Spreading money across different investments", "Checking prices every hour", "Selling whenever markets fall"], answer: 1, why: "Diversification spreads risk so one bad performer does not damage the whole portfolio." },
+  { level: "Starter", topic: "Investing habits", lesson: "where.html", type: "Scenario", q: "You can add S$100 every month. Which route best matches a steady beginner habit?", options: ["Regular savings plan or monthly ETF investing", "One random stock every month", "Only investing when social media is excited", "Switching platforms weekly"], answer: 0, why: "A regular savings plan or monthly ETF route supports dollar-cost averaging and builds the habit gradually." },
+  { level: "Builder", topic: "REITs", lesson: "invest.html", type: "Meaning", q: "What is a REIT?", options: ["A crypto token", "A listed vehicle that owns income-producing property", "A bank savings account", "A tax form"], answer: 1, why: "A REIT owns income-producing property such as malls, offices, or logistics assets, and often pays distributions." },
+  { level: "Builder", topic: "REITs", lesson: "invest.html", type: "Scenario", q: "A REIT gives a high yield. What should a beginner check before getting excited?", options: ["Only the yield number", "Occupancy, gearing, interest-rate sensitivity, and distribution history", "Whether influencers like it", "Whether the logo looks professional"], answer: 1, why: "High yield can hide risk. Check occupancy, gearing, debt costs, and whether distributions are sustainable." },
+  { level: "Confident", topic: "Investing habits", lesson: "learn.html#basics", type: "Meaning", q: "What is dollar-cost averaging?", options: ["Investing a fixed amount regularly", "Buying only at the yearly low", "Selling after every gain", "Choosing the cheapest stock"], answer: 0, why: "Dollar-cost averaging means investing a fixed amount regularly instead of trying to time the market." },
+  { level: "Confident", topic: "Investor behaviour", lesson: "learn.html#risk", type: "Scenario", q: "The market drops sharply after bad news. What is the most beginner-safe response?", options: ["Panic sell immediately", "Borrow money to buy more instantly", "Review time horizon, diversification, and original reason", "Ignore all risk"], answer: 2, why: "A market drop should trigger calm review, not panic." },
+  { level: "Advanced", topic: "Liquidity & risk", lesson: "learn.html#risk", type: "Meaning", q: "What does liquidity mean?", options: ["How quickly an investment can be turned into cash", "How famous a company is", "How high the dividend is", "How often news mentions it"], answer: 0, why: "Liquidity is how easily and quickly you can turn an investment into cash." },
+  { level: "Advanced", topic: "Scam awareness", lesson: "sources-safety.html", type: "Scenario", q: "A Telegram group promises 20% monthly returns with no risk. What should MoneyMentor advise?", options: ["Invest quickly", "Treat it as a scam red flag and verify with official sources such as MAS alerts", "Ask friends to join", "Invest a small amount"], answer: 1, why: "Guaranteed high returns with no risk are a major scam warning." }
 ];
 
 const LEVELS = [
@@ -624,7 +630,6 @@ function saveProgress(score) {
   progress.attempts += 1;
   progress.best = Math.max(progress.best, score);
   localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
-  addXp(Math.max(10, Math.round(score / 2)), null, "Quiz completed");
   updateProgress(score);
 }
 
@@ -689,6 +694,52 @@ function finishQuiz() {
     score >= 80 ? "Strong result. You understand beginner meanings and can handle investing scenarios." :
     score >= 50 ? "Good start. Review the missed scenarios, then retake the quiz." :
     "Start with the Investing basics lesson, then retake the quiz.";
+
+  // Topic diagnosis: what went wrong, and which lesson fixes it.
+  const topicMap = {};
+  quizAnswers.forEach((answer, i) => {
+    const item = QUIZ[i];
+    const topic = item.topic || item.level;
+    if (!topicMap[topic]) topicMap[topic] = { right: 0, wrong: 0, lesson: item.lesson || "learn.html" };
+    topicMap[topic][answer.correct ? "right" : "wrong"]++;
+  });
+  const weakTopics = Object.entries(topicMap).filter(([, v]) => v.wrong > 0);
+  let diagBox = document.getElementById("quizDiagnosis");
+  if (!diagBox) {
+    diagBox = document.createElement("div");
+    diagBox.id = "quizDiagnosis";
+    document.getElementById("resultSummary").after(diagBox);
+  }
+  if (weakTopics.length) {
+    diagBox.innerHTML = `
+      <div class="callout callout-warn" style="margin:16px 0;text-align:left">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4M12 17h.01"/></svg>
+        <span><b>Your weak topics:</b> ${weakTopics.map(([t, v]) => `${t} <a href="${v.lesson}">(revise this lesson)</a>`).join(" &middot; ")}.
+        Revise them, then retake the quiz to raise your level.</span>
+      </div>
+      <div class="hero-cta" style="justify-content:center;margin-bottom:8px">
+        <button class="btn btn-ghost btn-sm" id="quizEvidenceBtn" type="button">Download quiz evidence (CSV)</button>
+        <a class="btn btn-ghost btn-sm" href="chat.html?q=${encodeURIComponent("I got " + score + "% on the MoneyMentor quiz. My weak topics were: " + weakTopics.map(([t]) => t).join(", ") + ". Teach me these topics with simple Singapore examples, then quiz me again.")}">Ask AI to teach my weak topics</a>
+      </div>`;
+  } else {
+    diagBox.innerHTML = `
+      <div class="callout callout-info" style="margin:16px 0;text-align:left">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+        <span><b>No weak topics this round.</b> Every topic answered correctly - try the Practice Lab next.</span>
+      </div>
+      <div class="hero-cta" style="justify-content:center;margin-bottom:8px">
+        <button class="btn btn-ghost btn-sm" id="quizEvidenceBtn" type="button">Download quiz evidence (CSV)</button>
+      </div>`;
+  }
+  document.getElementById("quizEvidenceBtn")?.addEventListener("click", () => exportQuizEvidence(score));
+
+  // attempt history (evidence)
+  try {
+    const history = readJson("mm_quiz_history", []);
+    history.push({ ts: new Date().toISOString(), score, weakTopics: weakTopics.map(([t]) => t) });
+    localStorage.setItem("mm_quiz_history", JSON.stringify(history.slice(-20)));
+  } catch {}
+
   const review = document.getElementById("reviewList");
   review.innerHTML = "";
   quizAnswers.forEach((answer, i) => {
@@ -698,6 +749,22 @@ function finishQuiz() {
     div.innerHTML = `<strong>${i + 1}. ${item.level} ${item.type}</strong><br>${item.q}<br><span>${answer.correct ? "Correct" : `Your answer: ${item.options[answer.selected] || "No answer"} - Correct: ${item.options[item.answer]}`}</span><p>${item.why}</p>`;
     review.appendChild(div);
   });
+}
+
+function exportQuizEvidence(score) {
+  const rows = [["question_no", "topic", "question", "your_answer", "correct_answer", "result", "explanation"]];
+  quizAnswers.forEach((answer, i) => {
+    const item = QUIZ[i];
+    rows.push([i + 1, item.topic || item.level, item.q, item.options[answer.selected] || "No answer", item.options[item.answer], answer.correct ? "Correct" : "Wrong", item.why]);
+  });
+  rows.push(["", "", "FINAL SCORE", score + "%", "", "", new Date().toLocaleString("en-SG")]);
+  const csv = rows.map((row) => row.map((c) => '"' + String(c).replaceAll('"', '""') + '"').join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "moneymentor-quiz-evidence.csv";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 250);
 }
 
 function setupQuiz() {
@@ -732,24 +799,11 @@ function setupQuiz() {
   }
 }
 
-/* ---------- news decoder (why news moves prices) ---------- */
+/* ---------- market news ---------- */
 const MARKET_ALERTS = [
   {
-    id: "sti-bank-move",
-    label: "Rate news",
-    title: "Bank stocks move after rate news",
-    short: "DBS, OCBC, and UOB can move when interest-rate expectations change.",
-    happened: "Interest-rate expectations affect bank lending margins, deposits, loan demand, and investor appetite for bank dividends.",
-    beginner: "If bank shares jump or fall suddenly, do not treat the move as a simple buy signal. First ask whether earnings, dividends, interest rates, and valuation still make sense.",
-    why: "The three local banks make up a large slice of the STI, so if you hold an STI ETF, rate news moves your money too - even if you own no bank shares directly.",
-    riskContext: "Bank shares are single-company risk. An ETF spreads that risk but still falls when the whole sector falls.",
-    affected: ["DBS", "OCBC", "UOB", "STI ETF"],
-    sourceName: "The Business Times markets",
-    sourceUrl: "https://www.businesstimes.com.sg/markets"
-  },
-  {
     id: "reits-borrowing-costs",
-    label: "Sector pattern",
+    label: "Sector alert",
     title: "REITs react to borrowing costs",
     short: "REIT prices can move when investors expect higher or lower interest rates.",
     happened: "Many REITs use debt to own and manage property. Higher borrowing costs can pressure distributions and lower investor demand for high-yield assets.",
@@ -761,9 +815,22 @@ const MARKET_ALERTS = [
     sourceUrl: "https://www.reuters.com/markets/"
   },
   {
+    id: "sti-bank-move",
+    label: "Market move",
+    title: "Bank stocks move after rate news",
+    short: "DBS, OCBC, and UOB can move when interest-rate expectations change.",
+    happened: "Interest-rate expectations affect bank lending margins, deposits, loan demand, and investor appetite for bank dividends.",
+    beginner: "Do not treat a bank-price jump as a simple buy signal. Check earnings, dividends, rates, and valuation first.",
+    why: "The three local banks make up a large slice of the STI, so rate news can move an STI ETF too.",
+    riskContext: "Bank shares are single-company risk. An ETF spreads risk but still moves when a large sector moves.",
+    affected: ["DBS", "OCBC", "UOB", "STI ETF"],
+    sourceName: "The Business Times markets",
+    sourceUrl: "https://www.businesstimes.com.sg/markets"
+  },
+  {
     id: "global-volatility",
     label: "Global shock",
-    title: "Global sell-offs spill into Asia",
+    title: "Global market sell-off may spill into Asia",
     short: "US and China headlines can affect Singapore shares even when the company itself did nothing wrong.",
     happened: "Singapore is an open market. Global risk-off moves can affect banks, tech-linked names, REITs, and broad ETFs through sentiment and fund flows.",
     beginner: "When markets fall together, focus on your time horizon and diversification. Broad weakness is different from a company-specific problem.",
@@ -774,22 +841,22 @@ const MARKET_ALERTS = [
     sourceUrl: "https://www.channelnewsasia.com/business"
   },
   {
-    id: "earnings-season",
-    label: "Earnings",
-    title: "Earnings reports move single stocks hard",
-    short: "A company's quarterly results can move its share price sharply in one day - up or down.",
-    happened: "Every quarter, listed companies report profits. If results beat what investors expected, the price often jumps; if they miss, it can fall fast - even when the business is still healthy.",
-    beginner: "A stock falling after earnings does not automatically mean the company is dying, and a jump does not mean a sure win. The move is about expectations, not just results.",
-    why: "If you ever own a single stock like DBS or Singtel, earnings dates are when your money moves most. ETF holders feel it less because 29 other companies cushion the move.",
-    riskContext: "Single stocks carry event risk that diversified funds smooth out.",
-    affected: ["Single stocks", "Blue chips"],
-    sourceName: "SGX company announcements",
-    sourceUrl: "https://www.sgx.com/securities/company-announcements"
+    id: "sgx-market-update",
+    label: "Official source",
+    title: "SGX market updates are free to read",
+    short: "Use SGX research and market updates to understand what is moving locally.",
+    happened: "SGX publishes market information, education, and research resources that explain what is moving in the local market.",
+    beginner: "Before acting on social-media excitement, compare the claim against official market context and trusted reporting.",
+    why: "Free, official context beats paid 'signal groups' every time - and it cannot be faked by someone trying to sell you something.",
+    riskContext: "Information risk is real: acting on rumours is one of the fastest ways beginners lose money.",
+    affected: ["SGX stocks", "ETFs", "REITs"],
+    sourceName: "SGX market updates",
+    sourceUrl: "https://www.sgx.com/research-education/market-updates"
   },
   {
     id: "scam-warning",
-    label: "Safety",
-    title: "\"Guaranteed return\" claims are a red flag",
+    label: "Safety alert",
+    title: "Guaranteed-return claims are a red flag",
     short: "Any group promising high returns with no risk should be treated as suspicious.",
     happened: "Scam messages often use urgency, fake testimonials, and guaranteed profits to pressure beginners into transferring money.",
     beginner: "Pause. Verify the firm or person through official sources before giving money, personal details, or account access.",
@@ -798,7 +865,85 @@ const MARKET_ALERTS = [
     affected: ["New investors", "Telegram groups", "High-yield schemes"],
     sourceName: "MAS Investor Alert List",
     sourceUrl: "https://www.mas.gov.sg/investor-alert-list"
+  },
+  {
+    id: "rate-cuts-bonds",
+    label: "Teaching example",
+    title: "Interest rates fall - bonds and REITs breathe",
+    short: "Rate cuts usually lift bond prices and ease pressure on REITs.",
+    happened: "When central banks cut rates, existing bonds with higher coupons become more attractive, and REITs pay less on their borrowings.",
+    beginner: "Understand the seesaw: rates up usually means bond prices down (and vice versa). You don't need to predict rates - just know why your bond ETF or REIT moved.",
+    why: "This is the single most common 'why did my safe thing move?' question beginners ask.",
+    riskContext: "Even 'safe' bond funds move in price before maturity. SSBs are the exception - you can always exit at par.",
+    source: { name: "MoneySense - bond basics", href: "https://www.moneysense.gov.sg/understanding-bonds/" }
+  },
+  {
+    id: "dividend-season",
+    label: "Teaching example",
+    title: "Dividend season - money lands in accounts",
+    short: "SG banks, REITs, and Singtel-type stocks pay out cash to shareholders.",
+    happened: "Many Singapore blue chips pay dividends once or twice a year. On the ex-dividend date the share price typically drops by roughly the dividend amount.",
+    beginner: "Dividends are not free money appearing from nowhere - the price adjusts. The real lesson: total return = price change + dividends, so don't judge an investment by price alone.",
+    why: "Singapore is a dividend-heavy market; understanding ex-dates stops rookie confusion.",
+    riskContext: "A very high dividend yield can be a warning sign (price fell for a reason), not a gift.",
+    source: { name: "SGX - dividend information", href: "https://www.sgx.com/securities/company-announcements" }
+  },
+  {
+    id: "stronger-sgd",
+    label: "Teaching example",
+    title: "The Singapore dollar strengthens",
+    short: "A stronger SGD quietly changes what your overseas investments are worth.",
+    happened: "MAS manages the SGD against a basket of currencies. When SGD strengthens, overseas assets (like a US ETF) are worth fewer SGD even if their USD price didn't move.",
+    beginner: "If you buy global funds, currency is a hidden second bet. It can help or hurt - over long periods it tends to matter less than staying invested.",
+    why: "Beginners often panic when a global fund falls in SGD terms while US markets were flat.",
+    riskContext: "Currency swings add volatility to overseas holdings; SG-listed, SGD-denominated options avoid it.",
+    source: { name: "MAS - monetary policy explained", href: "https://www.mas.gov.sg/monetary-policy" }
+  },
+  {
+    id: "ipo-hype",
+    label: "Teaching example",
+    title: "A hot IPO everyone is talking about",
+    short: "New listings get hype; most beginners should watch, not chase.",
+    happened: "A company lists on an exchange and early trading is volatile. FOMO peaks exactly when information is thinnest.",
+    beginner: "You lose nothing by waiting. Let a new stock report a few quarters of real results before deciding. Hype is not analysis.",
+    why: "IPO chasing is one of the most common expensive first mistakes.",
+    riskContext: "Many IPOs trade below their listing price within a year - patience is protection.",
+    source: { name: "MoneySense - before you invest", href: "https://www.moneysense.gov.sg/starting-to-invest/" }
+  },
+  {
+    id: "tbill-yield",
+    label: "Teaching example",
+    title: "T-bill yields catch headlines",
+    short: "When 6-month T-bill yields look attractive, queues form.",
+    happened: "Singapore T-bills are auctioned regularly. When yields rise, they become a genuine competitor to fixed deposits and even to riskier assets for short-horizon money.",
+    beginner: "For money you need within a year, compare: bank deposit vs T-bill vs SSB. That comparison - not stock picking - is the real first investing decision for most people.",
+    why: "It teaches the risk-free benchmark: every risky investment must beat this to be worth the stress.",
+    riskContext: "T-bills held to maturity are as safe as it gets in SGD; selling early can vary.",
+    source: { name: "MAS - Singapore Government Securities", href: "https://www.mas.gov.sg/bonds-and-bills" }
+  },
+  {
+    id: "crypto-swings",
+    label: "Teaching example",
+    title: "Crypto swings 20% in a week - again",
+    short: "Huge moves both ways; not a beginner foundation.",
+    happened: "Crypto assets regularly move in a week what stock markets move in a year, driven by sentiment, leverage, and thin regulation.",
+    beginner: "MAS repeatedly warns that cryptocurrency is highly risky and not suitable for retail investors' core savings. If you must explore, treat it like money you can fully lose - after your foundation exists.",
+    why: "Beginners see the up-moves on social media and rarely the liquidations.",
+    riskContext: "No principal protection, extreme volatility, and scams cluster around it.",
+    source: { name: "MAS - consumer advisories on crypto", href: "https://www.mas.gov.sg/investor-alert-list" }
+  },
+  {
+    id: "panic-headlines",
+    label: "Teaching example",
+    title: "'Billions wiped off markets' headlines",
+    short: "Scary wording, normal event - markets fall regularly.",
+    happened: "A 2-3% index drop gets dramatic headlines. Historically, 10% dips happen most years and markets have recovered from every one so far - over time, not overnight.",
+    beginner: "Your plan should already assume drops will happen. If a headline makes you want to sell everything, the problem is usually the portfolio's risk level, not the news.",
+    why: "This is the emotional test every investor faces - Market Run lets you practise it safely.",
+    riskContext: "Past recoveries are not a guarantee; that is exactly why diversification and horizon matter.",
+    source: { name: "MoneySense - managing investment risk", href: "https://www.moneysense.gov.sg/managing-investment-risks/" }
   }
+
 ];
 
 function getOpenedAlerts() {
@@ -811,7 +956,6 @@ function markAlertOpened(id) {
   if (!opened.includes(id)) {
     opened.push(id);
     try { localStorage.setItem(PULSE_OPENED_KEY, JSON.stringify([...new Set(opened)])); } catch {}
-    addXp(15, `alert-${id}`, "Decoded a market pattern");
   }
 }
 
@@ -819,16 +963,30 @@ function renderNewsDetail(id) {
   const detail = document.getElementById("newsDetail");
   if (!detail) return;
   const alert = MARKET_ALERTS.find((item) => item.id === id) || MARKET_ALERTS[0];
+  const affected = alert.affected || ["Beginner investors"];
+  const sourceHref = alert.sourceUrl || alert.source?.href || "market.html";
+  const sourceName = alert.sourceName || alert.source?.name || "Educational source";
   detail.innerHTML = `
     <h3>${alert.title}</h3>
-    <div class="pill-row">${alert.affected.map((item) => `<span class="pill">${item}</span>`).join("")}</div>
-    <div class="news-block"><h4>What happens</h4><p>${alert.happened}</p></div>
-    <div class="news-block"><h4>In plain English</h4><p>${alert.beginner}</p></div>
-    <div class="news-block"><h4>Why this matters to you</h4><p>${alert.why}</p></div>
-    <div class="news-block"><h4>Risk context</h4><p>${alert.riskContext}</p></div>
+    <div class="pill-row">${affected.map((item) => `<span class="pill">${item}</span>`).join("")}</div>
+    <div class="news-takeaway">
+      <p><b>Plain English:</b> ${alert.beginner}</p>
+      <p><b>Why it matters:</b> ${alert.why}</p>
+    </div>
+    <details class="market-explainer" open>
+      <summary>What happened</summary>
+      <p>${alert.happened}</p>
+    </details>
+    <details class="market-explainer">
+      <summary>Risk context</summary>
+      <p>${alert.riskContext}</p>
+    </details>
     <div class="news-foot">
-      <span class="source-label">Where to watch this: <a href="${alert.sourceUrl}" target="_blank" rel="noopener">${alert.sourceName}</a></span>
+      <span class="source-label">Source: <a href="${sourceHref}" target="_blank" rel="noopener">${sourceName}</a></span>
+      <span class="source-label">Educational example &middot; reviewed Jul 2026</span>
+      <button class="btn btn-ghost btn-sm prompt-ai" type="button" data-question="Explain this Market School event for a beginner in Singapore: ${alert.title}. ${alert.short} What should I understand, what risks matter, and what mistake should I avoid?">Ask Bot</button>
     </div>`;
+  detail.querySelector(".prompt-ai")?.addEventListener("click", (e) => openChatWithQuestion(e.currentTarget.dataset.question, { mode: "widget" }));
 }
 
 function renderNewsList(activeId) {
@@ -837,7 +995,7 @@ function renderNewsList(activeId) {
   const opened = getOpenedAlerts();
   list.innerHTML = MARKET_ALERTS.map((alert) => `
     <button class="news-item ${opened.includes(alert.id) ? "opened" : ""} ${alert.id === activeId ? "active" : ""}" type="button" data-alert-id="${alert.id}" ${alert.id === activeId ? 'aria-current="true"' : ""}>
-      <span class="news-status">${opened.includes(alert.id) ? "Decoded" : "+15 XP"}</span>
+      <span class="news-status">${opened.includes(alert.id) ? "Read" : "New"}</span>
       <span class="news-tag">${alert.label}</span>
       <strong>${alert.title}</strong>
       <small>${alert.short}</small>
@@ -861,6 +1019,172 @@ function setupMarketNews() {
   const firstUnread = MARKET_ALERTS.find((alert) => !getOpenedAlerts().includes(alert.id)) || MARKET_ALERTS[0];
   renderNewsList(firstUnread.id);
   renderNewsDetail(firstUnread.id);
+}
+
+/* ---------- live market news + decoder ---------- */
+const MARKET_DECODER_PATTERNS = [
+  {
+    id: "rate-news",
+    label: "Rate news",
+    title: "Bank stocks move after rate news",
+    short: "DBS, OCBC, and UOB can move when interest-rate expectations change.",
+    chips: ["Banks", "STI ETF"],
+    happened: "Interest-rate expectations affect bank lending margins, deposit costs, loan demand, and investor appetite for dividends.",
+    plain: "A rate headline does not automatically mean bank shares should jump or fall. It changes what investors expect banks to earn next.",
+    why: "The three local banks are a large slice of the STI, so rate news can move an STI ETF even if you never buy a bank stock directly.",
+    risk: "Single bank shares carry company risk. A broad ETF spreads risk, but it still moves when a large sector moves.",
+    sourceName: "The Business Times markets",
+    sourceUrl: "https://www.businesstimes.com.sg/markets"
+  },
+  {
+    id: "reits-borrowing-costs",
+    label: "Sector pattern",
+    title: "REITs react to borrowing costs",
+    short: "REIT prices can move when investors expect higher or lower interest rates.",
+    chips: ["REITs", "Income"],
+    happened: "Many REITs use debt to own and manage property. Higher borrowing costs can pressure distributions and make high-yield assets less attractive.",
+    plain: "A REIT price fall is not always a broken business. Sometimes investors are repricing the cost of debt and the income they require.",
+    why: "REITs are popular with young Singapore investors for payouts. Understanding the rate link stops you treating yield as free money.",
+    risk: "A high yield can signal higher risk. Check gearing, occupancy, debt maturity, and whether distributions look sustainable.",
+    sourceName: "Reuters markets",
+    sourceUrl: "https://www.reuters.com/markets/"
+  },
+  {
+    id: "global-shock",
+    label: "Global shock",
+    title: "Global sell-offs spill into Asia",
+    short: "US and China headlines can affect Singapore shares even when the company itself did nothing wrong.",
+    chips: ["STI ETF", "Global ETFs"],
+    happened: "Singapore is an open market. Global risk-off moves can affect banks, tech-linked names, REITs, and broad ETFs through sentiment and fund flows.",
+    plain: "When markets fall together, focus on your time horizon and diversification. Broad weakness is different from a company-specific problem.",
+    why: "Your first market drop can feel personal. Knowing the difference between a global wobble and a real problem helps prevent panic-selling.",
+    risk: "Short-term drops are normal. The real mistake is selling low only because a scary headline appeared.",
+    sourceName: "CNA Business",
+    sourceUrl: "https://www.channelnewsasia.com/business"
+  },
+  {
+    id: "earnings",
+    label: "Earnings",
+    title: "Earnings reports move single stocks hard",
+    short: "A company's quarterly results can move its share price sharply in one day - up or down.",
+    chips: ["Single stocks", "Blue chips"],
+    happened: "Every quarter, listed companies report profits. If results beat what investors expected, the price can jump; if they miss, it can fall fast.",
+    plain: "A stock falling after earnings does not automatically mean the company is dying, and a jump does not mean a sure win. The move is about expectations.",
+    why: "If you own a single stock like DBS or Singtel, earnings dates are when your money moves most. ETF holders feel it less because many other companies cushion the move.",
+    risk: "Single stocks carry event risk that diversified funds smooth out.",
+    sourceName: "SGX company announcements",
+    sourceUrl: "https://www.sgx.com/securities/company-announcements"
+  },
+  {
+    id: "scam-safety",
+    label: "Safety",
+    title: "Guaranteed return claims are a red flag",
+    short: "Any group promising high returns with no risk should be treated as suspicious.",
+    chips: ["Scams", "Safety"],
+    happened: "Scam messages often use urgency, fake testimonials, and guaranteed profits to pressure beginners into transferring money.",
+    plain: "Real investments have risk. If someone promises both high returns and no risk, pause and verify before giving money or personal details.",
+    why: "New investors are attractive targets. A quick check against official sources can protect your whole starting amount.",
+    risk: "If returns are guaranteed and high, the risk may be the whole amount. Real investments never promise both.",
+    sourceName: "MAS Investor Alert List",
+    sourceUrl: "https://www.mas.gov.sg/investor-alert-list"
+  }
+];
+
+function getDecodedMarketPatterns() {
+  const decoded = readJson(MARKET_DECODER_KEY, []);
+  return Array.isArray(decoded) ? decoded : [];
+}
+
+function saveDecodedMarketPatterns(ids) {
+  try { localStorage.setItem(MARKET_DECODER_KEY, JSON.stringify([...new Set(ids)])); } catch {}
+}
+
+function setupLiveMarketNews() {
+  const askButton = document.getElementById("liveNewsAskBot");
+  if (!askButton) return;
+  askButton.addEventListener("click", () => {
+    openChatWithQuestion(askButton.dataset.question || "", { mode: "widget" });
+  });
+}
+
+function setupMarketDecoder() {
+  const list = document.getElementById("marketDecoderList");
+  const detail = document.getElementById("marketDecoderDetail");
+  if (!list || !detail) return;
+
+  let activeId = MARKET_DECODER_PATTERNS[0].id;
+  let awardedId = "";
+
+  function render() {
+    const decoded = getDecodedMarketPatterns();
+    const active = MARKET_DECODER_PATTERNS.find((item) => item.id === activeId) || MARKET_DECODER_PATTERNS[0];
+    const total = document.getElementById("decoderXpTotal");
+    if (total) total.textContent = `${decoded.length * 15} XP decoded`;
+
+    list.innerHTML = MARKET_DECODER_PATTERNS.map((item) => {
+      const isActive = item.id === active.id;
+      const isDecoded = decoded.includes(item.id);
+      const status = awardedId === item.id ? "+15 XP" : (isDecoded ? "Decoded" : "Decode");
+      return `
+        <button class="decoder-card ${isActive ? "active" : ""} ${isDecoded ? "decoded" : ""}" type="button" data-decoder-id="${item.id}" ${isActive ? 'aria-current="true"' : ""}>
+          <span class="decoder-card-status">${status}</span>
+          <span class="decoder-card-label">${item.label}</span>
+          <strong>${item.title}</strong>
+          <small>${item.short}</small>
+        </button>`;
+    }).join("");
+
+    const decodedState = decoded.includes(active.id);
+    const statusLabel = awardedId === active.id ? "+15 XP" : (decodedState ? "Decoded" : "Decode this pattern");
+    detail.innerHTML = `
+      <div class="decoder-detail-top">
+        <h3>${active.title}</h3>
+        <span class="decoder-earned ${awardedId === active.id ? "fresh" : ""}">${statusLabel}</span>
+      </div>
+      <div class="pill-row">${active.chips.map((chip) => `<span class="pill">${chip}</span>`).join("")}</div>
+      <div class="news-block">
+        <h4>What happens</h4>
+        <p>${active.happened}</p>
+      </div>
+      <div class="news-block">
+        <h4>In plain English</h4>
+        <p>${active.plain}</p>
+      </div>
+      <div class="news-block">
+        <h4>Why this matters to you</h4>
+        <p>${active.why}</p>
+      </div>
+      <div class="news-block">
+        <h4>Risk context</h4>
+        <p>${active.risk}</p>
+      </div>
+      <div class="news-foot">
+        <span class="source-label">Where to watch this: <a href="${active.sourceUrl}" target="_blank" rel="noopener">${active.sourceName}</a></span>
+        <button class="btn btn-ghost btn-sm decoder-ask" type="button" data-question="Explain this market news pattern for a beginner in Singapore: ${active.title}. What happened, why prices may move, what risk matters, and what mistake should I avoid?">Ask Bot</button>
+      </div>`;
+
+    list.querySelectorAll(".decoder-card").forEach((button) => {
+      button.addEventListener("click", () => {
+        activeId = button.dataset.decoderId;
+        const currentDecoded = getDecodedMarketPatterns();
+        if (!currentDecoded.includes(activeId)) {
+          saveDecodedMarketPatterns([...currentDecoded, activeId]);
+          awardedId = activeId;
+          const item = MARKET_DECODER_PATTERNS.find((pattern) => pattern.id === activeId);
+          showToast(`+15 XP earned: ${item?.label || "pattern"} decoded.`);
+        } else {
+          awardedId = "";
+        }
+        render();
+      });
+    });
+
+    detail.querySelector(".decoder-ask")?.addEventListener("click", (event) => {
+      openChatWithQuestion(event.currentTarget.dataset.question || "", { mode: "widget" });
+    });
+  }
+
+  render();
 }
 
 /* ---------- chat (n8n) ---------- */
@@ -904,16 +1228,15 @@ const BEGINNER_RECOMMENDATION_UNIVERSE = [
 
 function getChatMetadata() {
   const profile = getProfile();
-  const xpState = getXpState();
   return {
     sessionId: profile.sessionId,
     currentPage: location.pathname.split("/").pop() || "index.html",
     profile,
     beginnerMode: isBeginnerMode(),
     quizProgress: getProgress(),
-    xp: xpState.xp,
-    mentorLevel: levelInfo(xpState.xp).level,
-    visitStreak: xpState.streak,
+    watchlist: readJson("mm_watchlist", []),
+    whereQuiz: readJson("mm_where_quiz_result", null),
+    buyQuiz: readJson("mm_buy_quiz_result", null),
     openedMarketAlerts: getOpenedAlerts(),
     answerPolicy: CHAT_ANSWER_POLICY,
     trustedSourceBasis: TRUSTED_SOURCE_BASIS,
@@ -926,28 +1249,29 @@ function getChatMetadata() {
   };
 }
 
-function showChatFallback(message = "MoneyMentor chat is still loading. Your question has been copied so you can paste it when the chat opens.") {
-  if (findChatInput() || document.querySelector(".chat-window-toggle, [class*='chat-window-toggle'], .n8n-chat, [class*='chat-window']")) return;
-  let box = document.getElementById("chatFallback");
-  if (!box) {
-    box = document.createElement("div");
-    box.id = "chatFallback";
-    box.className = "chat-fallback";
-    box.setAttribute("role", "status");
-    box.innerHTML = `<strong>Chat not ready yet</strong><p></p><button class="btn btn-primary btn-sm" type="button">Got it</button>`;
-    document.body.appendChild(box);
-    box.querySelector("button")?.addEventListener("click", () => box.classList.remove("show"));
-  }
-  box.querySelector("p").textContent = message;
-  box.classList.add("show");
+function isUsableChatInput(input) {
+  if (!input || input.disabled || input.readOnly || input.closest?.(".lib-search")) return false;
+  const label = `${input.id || ""} ${input.name || ""} ${input.className || ""} ${input.placeholder || ""} ${input.getAttribute?.("aria-label") || ""}`.toLowerCase();
+  if (label.includes("search")) return false;
+  const rect = input.getBoundingClientRect?.();
+  return (!rect || (rect.width > 0 && rect.height > 0)) &&
+    (input.isContentEditable || input.tagName === "TEXTAREA" || label.includes("chat") || label.includes("message") || label.includes("ask"));
 }
 
-function hideChatFallback() {
-  document.getElementById("chatFallback")?.classList.remove("show");
+function deepQueryInputs(root = document, found = []) {
+  if (!root) return found;
+  root.querySelectorAll?.("textarea, input:not([type='search']), [contenteditable='true']").forEach((node) => found.push(node));
+  root.querySelectorAll?.("*").forEach((node) => {
+    if (node.shadowRoot) deepQueryInputs(node.shadowRoot, found);
+  });
+  return found;
 }
 
 function findChatInput() {
   const scopedSelectors = [
+    '[data-test-id="chat-input"]',
+    ".chat-input textarea",
+    ".chat-inputs textarea",
     ".chat-window textarea",
     ".chat-window input:not([type='search'])",
     "[class*='chat-window'] textarea",
@@ -957,29 +1281,66 @@ function findChatInput() {
   ];
   const scopedInput = scopedSelectors
     .map((selector) => document.querySelector(selector))
-    .find((input) => input && input.offsetParent !== null && !input.closest(".lib-search"));
+    .find((input) => isUsableChatInput(input));
   if (scopedInput) return scopedInput;
 
-  return Array.from(document.querySelectorAll("textarea, input:not([type='search'])"))
-    .find((input) => {
-      const label = `${input.id || ""} ${input.name || ""} ${input.className || ""} ${input.placeholder || ""}`.toLowerCase();
-      return input.offsetParent !== null &&
-        !input.closest(".lib-search") &&
-        !label.includes("search") &&
-        (label.includes("chat") || label.includes("message") || input.tagName === "TEXTAREA");
-    });
+  return deepQueryInputs().find((input) => isUsableChatInput(input));
+}
+
+function setInputValue(input, value) {
+  input.focus();
+  if (input.isContentEditable) {
+    input.textContent = value;
+  } else {
+    const proto = input.tagName === "TEXTAREA" ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+    const setter = Object.getOwnPropertyDescriptor(proto, "value")?.set;
+    if (setter) setter.call(input, value);
+    else input.value = value;
+  }
+  input.dispatchEvent(new InputEvent("beforeinput", { bubbles: true, cancelable: true, inputType: "insertText", data: value }));
+  input.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText", data: value }));
+  input.dispatchEvent(new Event("change", { bubbles: true }));
+  input.dispatchEvent(new KeyboardEvent("keyup", { bubbles: true, key: "Unidentified" }));
+}
+
+function stabilizeChatInput(input, question) {
+  setInputValue(input, question);
+  setTimeout(() => setInputValue(input, question), 80);
+  setTimeout(() => setInputValue(input, question), 240);
+}
+
+function hideChatFallback() {
+  document.querySelectorAll(".chat-fallback").forEach((fallback) => fallback.classList.remove("show"));
+}
+
+function showChatFallback(message = "Chat is open. If the question was not pasted, use the copy button and paste it into the chat box.") {
+  let fallback = document.getElementById("chatFallback");
+  if (!fallback) {
+    fallback = document.createElement("div");
+    fallback.id = "chatFallback";
+    fallback.className = "chat-fallback";
+    fallback.innerHTML = `
+      <strong>Chat is open</strong>
+      <p></p>
+      <button class="btn btn-primary btn-sm" type="button">Copy question</button>`;
+    document.body.appendChild(fallback);
+  }
+  const pendingQuestion = localStorage.getItem(PENDING_QUESTION_KEY) || "";
+  fallback.querySelector("p").textContent = message;
+  fallback.querySelector("button").onclick = () => navigator.clipboard?.writeText(pendingQuestion).catch(() => {});
+  fallback.classList.add("show");
 }
 
 function prefillChatInput(question, attempts = 0) {
   const input = findChatInput();
   if (input && question) {
     hideChatFallback();
-    input.value = question;
-    input.dispatchEvent(new Event("input", { bubbles: true }));
+    stabilizeChatInput(input, question);
     input.focus();
+    try { localStorage.removeItem(PENDING_QUESTION_KEY); } catch {}
     return true;
   }
-  if (attempts < 12) {
+  if (attempts < 40) {
     setTimeout(() => prefillChatInput(question, attempts + 1), 250);
     return false;
   }
@@ -987,65 +1348,56 @@ function prefillChatInput(question, attempts = 0) {
   return false;
 }
 
-function openChatWithQuestion(question = "") {
-  if (question) {
-    localStorage.setItem(PENDING_QUESTION_KEY, question);
-    navigator.clipboard?.writeText(question).catch(() => {});
+function openChatWithQuestion(question = "", options = {}) {
+  const preset = String(question || "").trim();
+  const forceWidget = options.mode === "widget" || document.body.dataset.page === "market";
+  if (preset && !forceWidget) {
+    try { localStorage.setItem(PENDING_QUESTION_KEY, preset); } catch {}
+    location.href = `chat.html?q=${encodeURIComponent(preset)}`;
+    return;
   }
+  if (preset) {
+    try { localStorage.setItem(PENDING_QUESTION_KEY, preset); } catch {}
+    navigator.clipboard?.writeText(preset).catch(() => {});
+  } else {
+    try { localStorage.removeItem(PENDING_QUESTION_KEY); } catch {}
+  }
+  const inputAlreadyOpen = findChatInput();
   const toggle = document.querySelector(".chat-window-toggle, [class*='chat-window-toggle']");
-  if (toggle) toggle.click();
-  setTimeout(() => prefillChatInput(question), 250);
+  if (!inputAlreadyOpen && toggle) toggle.click();
+  setTimeout(() => prefillChatInput(preset), 150);
+  setTimeout(() => prefillChatInput(preset), 650);
+  setTimeout(() => prefillChatInput(preset), 1400);
 }
 
 function setupChatTriggers() {
+  if (document.body.dataset.page === "market") {
+    document.querySelectorAll(".open-chat").forEach((button) => {
+      if (button.tagName === "BUTTON") button.textContent = "Ask Bot";
+    });
+  }
   document.querySelectorAll(".prompt-ai").forEach((button) => {
-    button.addEventListener("click", () => openChatWithQuestion(button.dataset.question || ""));
+    if (document.body.dataset.page === "market") button.textContent = "Ask Bot";
+    button.addEventListener("click", () => openChatWithQuestion(button.dataset.question || "", document.body.dataset.page === "market" ? { mode: "widget" } : {}));
   });
   document.querySelectorAll(".open-chat").forEach((button) => {
-    button.addEventListener("click", () => openChatWithQuestion(""));
+    button.addEventListener("click", () => openChatWithQuestion("", { mode: "widget" }));
   });
-}
-
-/* Expand/shrink button so long answers are easier to read */
-function addChatExpandButton() {
-  const header = document.querySelector(".chat-window .chat-header, [class*='chat-window'] [class*='chat-header']");
-  if (!header || header.querySelector(".chat-expand-btn")) return Boolean(header);
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.className = "chat-expand-btn";
-  btn.setAttribute("aria-label", "Expand chat window");
-  btn.title = "Expand chat";
-  btn.textContent = "⤢";
-  btn.addEventListener("click", () => {
-    const expanded = document.body.classList.toggle("chat-expanded");
-    btn.textContent = expanded ? "⤡" : "⤢";
-    btn.title = expanded ? "Shrink chat" : "Expand chat";
-  });
-  header.appendChild(btn);
-  return true;
-}
-
-function watchForChatHeader() {
-  if (addChatExpandButton()) return;
-  const observer = new MutationObserver(() => {
-    if (addChatExpandButton()) observer.disconnect();
-  });
-  observer.observe(document.body, { childList: true, subtree: true });
 }
 
 function loadChatWidget() {
+  if (document.body.dataset.page === "chat") return; // full AI workspace page has its own UI
   import("https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js")
     .then(({ createChat }) => {
       createChat({
         webhookUrl: CHAT_WEBHOOK_URL,
         mode: "window",
-        enableStreaming: true,
         showWelcomeScreen: false,
         sessionId: getProfile().sessionId,
         metadata: getChatMetadata(),
         initialMessages: [
           "Hi! I'm MoneyMentor.",
-          "Ask me to explain investing terms, decode a news headline, or build a ranked research shortlist.",
+          "Ask me to explain investing terms, compare beginner options, or build a ranked research shortlist.",
           "I use your saved learning profile, and I always explain the risk alongside the answer."
         ],
         i18n: {
@@ -1059,13 +1411,625 @@ function loadChatWidget() {
         }
       });
       const pending = localStorage.getItem(PENDING_QUESTION_KEY);
-      if (pending) setTimeout(() => prefillChatInput(pending), 500);
-      watchForChatHeader();
+      if (pending && document.body.dataset.page === "market") setTimeout(() => prefillChatInput(pending), 500);
     })
     .catch(() => {
       console.warn("Chat widget could not load.");
       showChatFallback("MoneyMentor chat could not load. Check your connection, then refresh this page.");
     });
+}
+
+
+/* ---------- profile-based portfolio ----------
+   Rule-based personalisation from the saved learning profile.
+   Clearly labelled as rules, not AI - the AI chat handles free-form plans. */
+function planForProfile(profile) {
+  const shortHorizon = profile.timeHorizon === "6 months";
+  const midHorizon = profile.timeHorizon === "1-3 years";
+  const lowRisk = profile.riskComfort === "Low";
+  const highRisk = profile.riskComfort === "High";
+  const emergencyReady = profile.emergencyFund === "Ready";
+
+  if (!emergencyReady) {
+    return {
+      name: "Foundation-first portfolio",
+      note: "Finish the emergency fund before taking real market risk.",
+      split: [["Emergency savings / cash", "70%"], ["SSB or T-bills", "30%"]],
+      why: "Your profile says the emergency fund is not fully ready. That means the first job is protection, not growth.",
+      risk: "The main risk is opportunity cost. That is acceptable while the safety base is still being built.",
+      next: "Make the emergency fund ready, then revisit the portfolio page."
+    };
+  }
+  if (shortHorizon) {
+    return {
+      name: "Capital-protection route",
+      note: "Your money may be needed soon, so market risk stays out.",
+      split: [["Singapore Savings Bonds or T-bills", "100%"]],
+      why: "Government-backed, principal protected, and SSBs start from exactly S$500. Low growth is the fair price of certainty over a short horizon.",
+      risk: "Returns will be modest. That is the right trade-off for money you need soon.",
+      next: "Compare the current SSB and T-bill details on MAS before applying."
+    };
+  }
+  if (midHorizon && lowRisk) {
+    return {
+      name: "Cautious builder route",
+      note: "A small market slice, with most money kept steady.",
+      split: [["SSB / T-bills", "60%"], ["STI ETF or regular savings plan", "30%"], ["Learning buffer (cash)", "10%"]],
+      why: "Most of the money stays protected while a small slice learns how market movement feels over 1-3 years.",
+      risk: "The ETF slice can fall in bad years. Only the government-backed part is principal protected.",
+      next: "Use a small monthly amount first, then review after a few months."
+    };
+  }
+  if (midHorizon) {
+    return {
+      name: "Balanced beginner route",
+      note: "A simple mix of growth and safety.",
+      split: [["STI ETF or regular savings plan", "50%"], ["SSB / T-bills", "30%"], ["Robo-advisor or one blue-chip study position", "20%"]],
+      why: "A real market core with a safety anchor, sized for a 1-3 year horizon and your risk comfort.",
+      risk: "Market slices can drop 20%+ in a bad stretch. Your horizon gives some room to recover, but not unlimited.",
+      next: "Keep single stocks small until the ETF or robo core is already in place."
+    };
+  }
+  // 5+ years
+  if (lowRisk) {
+    return {
+      name: "Long-term steady route",
+      note: "Long horizon, but still gentle risk.",
+      split: [["STI ETF via monthly regular savings plan", "50%"], ["SSB / bond ETF", "40%"], ["Learning buffer", "10%"]],
+      why: "Five-plus years is where diversified market investing historically works - the monthly plan builds the habit without timing stress.",
+      risk: "Even long-term, markets fall along the way. This only works if you keep holding through dips.",
+      next: "Automate the monthly amount so you do not keep waiting for the perfect day."
+    };
+  }
+  return {
+    name: highRisk ? "Growth-leaning long-term route" : "Long-term growth route",
+    note: "A diversified growth core, with a small learning slice.",
+    split: [["STI ETF or global ETF via RSP/robo", highRisk ? "70%" : "60%"], ["SSB / bond ETF", highRisk ? "15%" : "25%"], ["One blue-chip or REIT study position", "15%"]],
+    why: "With a 5+ year horizon, a diversified ETF core is the sensible engine; the single-stock slice is for learning, not for betting.",
+    risk: "Higher growth potential means bigger temporary drops. Never put emergency savings here.",
+    next: "Keep the learning slice capped so one stock cannot damage the whole portfolio."
+  };
+}
+
+function setupPersonalPlan() {
+  const mount = document.getElementById("personalPlan");
+  if (!mount) return;
+  const render = () => {
+    const profile = getProfile();
+    const plan = planForProfile(profile);
+    const bars = plan.split.map(([what, pct]) => {
+      const width = Math.min(100, Math.max(8, Number(String(pct).replace(/[^0-9]/g, "")) || 15));
+      return `<div class="alloc-row"><div><b>${pct}</b><span>${what}</span></div><i style="width:${width}%"></i></div>`;
+    }).join("");
+    mount.innerHTML = `
+      <article class="recommend-card portfolio-plan" style="margin-bottom:24px;border:2px solid var(--forest)">
+        <span class="eyebrow">Profile-based portfolio</span>
+        <h2 style="margin-top:6px">${plan.name}</h2>
+        <p class="plan-note">${plan.note}</p>
+        <div class="pill-row profile-chip-row" style="margin:10px 0 14px">
+          <span class="pill">Risk: ${profile.riskComfort}</span>
+          <span class="pill">Horizon: ${profile.timeHorizon}</span>
+          <span class="pill">Budget: ${profile.budget}</span>
+          <span class="pill">Emergency: ${profile.emergencyFund}</span>
+          <span class="pill">Set aside: ${profile.setAside}</span>
+          <a class="pill" href="profile.html" style="text-decoration:none">Change profile</a>
+        </div>
+        <div class="alloc-bars">${bars}</div>
+        <div class="info-accordion compact" style="margin-top:16px">
+          <details open><summary>Why this fits</summary><p>${plan.why}</p></details>
+          <details><summary>Honest risk</summary><p>${plan.risk}</p></details>
+          <details><summary>Next useful step</summary><p>${plan.next}</p></details>
+        </div>
+        <div class="hero-cta" style="margin-top:14px">
+          <button class="btn btn-primary btn-sm prompt-ai" type="button" data-question="MoneyMentor's profile-based portfolio for me (risk ${profile.riskComfort}, horizon ${profile.timeHorizon}, budget ${profile.budget}, emergency fund ${profile.emergencyFund}, set-aside ${profile.setAside}) is: ${plan.name} - ${plan.split.map(([w, p]) => p + " " + w).join(", ")}. Explain this plan, challenge anything that seems off, and cite the sources you rely on."></button>
+          <a class="btn btn-ghost btn-sm" href="profile.html">Edit profile inputs</a>
+        </div>
+        <p class="disclaimer" style="margin-top:10px">This is generated from your saved profile, not a quiz. Educational example only - not licensed financial advice.</p>
+      </article>`;
+    mount.querySelector(".prompt-ai").textContent = "Ask AI to review this plan";
+    mount.querySelector(".prompt-ai").addEventListener("click", (e) => openChatWithQuestion(e.currentTarget.dataset.question));
+  };
+  render();
+}
+
+function highlightWhereLane(cardIndex) {
+  const cards = document.querySelectorAll(".where-card");
+  if (!cards.length) return;
+  cards.forEach((card, i) => {
+    card.style.outline = i === cardIndex ? "3px solid var(--forest)" : "";
+    card.style.outlineOffset = i === cardIndex ? "2px" : "";
+  });
+}
+
+/* ---------- Separate Where / What quizzes ---------- */
+const WHERE_RESULTS = {
+  government: {
+    laneName: "Government-backed route",
+    route: "SSBs or T-bills through your bank",
+    cardIndex: 3,
+    desc: "Best when safety, short horizon, or emergency cash matters most.",
+    steps: ["Use MAS pages to compare current SSB and T-bill details.", "Keep market products for money you can leave alone longer."]
+  },
+  monthly: {
+    laneName: "Monthly investing route",
+    route: "Regular savings plan into a broad ETF",
+    cardIndex: 2,
+    desc: "Best when you want a simple habit and can set aside money every month.",
+    steps: ["Start small enough that you will not stop during a market dip.", "Use this route only for money that can stay invested for years."]
+  },
+  robo: {
+    laneName: "Robo-advisor route",
+    route: "Managed diversified portfolio",
+    cardIndex: 1,
+    desc: "Best when you want help choosing and rebalancing the portfolio.",
+    steps: ["Compare fees, risk level, and withdrawal rules.", "Choose a risk level you can stick with during a bad year."]
+  },
+  sgx: {
+    laneName: "SGX do-it-yourself route",
+    route: "Brokerage account and SGX products",
+    cardIndex: 0,
+    desc: "Best when you want control and are willing to learn before buying.",
+    steps: ["Start with broad ETFs before single stocks.", "Keep single-company positions small until you understand the risks."]
+  }
+};
+
+const WHERE_QUESTIONS = [
+  { key: "need", q: "When might you need this money back?", opts: [["soon", "Within about a year"], ["medium", "In 1-3 years"], ["long", "Not for 5+ years"]] },
+  { key: "safety", q: "Is your emergency fund ready?", opts: [["no", "Not yet"], ["partial", "Partly"], ["yes", "Yes, ready"]] },
+  { key: "style", q: "Which route feels easiest to stick with?", opts: [["safe", "A safe government-backed route"], ["monthly", "A monthly investing habit"], ["handsOff", "An app manages it for me"], ["control", "I choose and buy through a broker"]] },
+  { key: "amount", q: "How do you prefer to start?", opts: [["oneoff", "One lump sum"], ["monthly", "A small monthly amount"], ["unsure", "Not sure yet"]] },
+  { key: "homework", q: "How much homework do you want?", opts: [["low", "As little as possible"], ["some", "Some, but guided"], ["high", "I want control and details"]] }
+];
+
+function scoreWhereQuiz(answers) {
+  if (answers.need === "soon" || answers.safety === "no" || answers.style === "safe") return "government";
+  if (answers.style === "handsOff" || (answers.homework === "low" && answers.amount !== "monthly")) return "robo";
+  if (answers.amount === "monthly" || answers.style === "monthly") return "monthly";
+  if (answers.style === "control" || answers.homework === "high") return "sgx";
+  return "robo";
+}
+
+function setupWhereQuiz() {
+  const mount = document.getElementById("whereQuiz");
+  if (!mount) return;
+  const saved = readJson("mm_where_quiz_result", null);
+  const answers = {};
+  let index = 0;
+
+  function renderResult(result) {
+    const r = WHERE_RESULTS[result.resultKey];
+    mount.innerHTML = `
+      <div class="wizard-shell tool-quiz">
+        <div class="quiz-top"><span>Where quiz result</span><span>${new Date(result.ts).toLocaleDateString("en-SG")}</span></div>
+        <h3 class="wizard-lane">${r.laneName}</h3>
+        <p><b>Clear route:</b> ${r.route}</p>
+        <p>${r.desc}</p>
+        <ul class="mini-list">${r.steps.map((step) => `<li>${step}</li>`).join("")}</ul>
+        <div class="hero-cta" style="margin-top:14px">
+          <a class="btn btn-primary btn-sm" href="invest.html#buyQuiz">Next: What should I buy?</a>
+          <button class="btn btn-ghost btn-sm prompt-ai" type="button" data-question="My MoneyMentor Where quiz result is ${r.laneName}: ${r.route}. Explain why this route fits, what risks to check, and what my next step should be in Singapore.">Ask AI to explain</button>
+          <button class="btn btn-ghost btn-sm" id="retakeWhereQuiz" type="button">Retake Where quiz</button>
+        </div>
+      </div>`;
+    highlightWhereLane(r.cardIndex);
+    mount.querySelector("#retakeWhereQuiz").addEventListener("click", () => { index = 0; Object.keys(answers).forEach((k) => delete answers[k]); renderQuestion(); });
+    mount.querySelector(".prompt-ai").addEventListener("click", (e) => openChatWithQuestion(e.currentTarget.dataset.question));
+  }
+
+  function renderQuestion() {
+    const question = WHERE_QUESTIONS[index];
+    mount.innerHTML = `
+      <div class="wizard-shell tool-quiz">
+        <div class="quiz-top"><span>Where to invest quiz</span><span>Question ${index + 1} of ${WHERE_QUESTIONS.length}</span></div>
+        <div class="quiz-bar"><span style="width:${Math.round((index / WHERE_QUESTIONS.length) * 100)}%"></span></div>
+        <div class="quiz-question">${question.q}</div>
+        <div class="quiz-options"></div>
+        ${index > 0 ? '<button class="mini-btn" id="whereBack" type="button" style="margin-top:10px">Back</button>' : ""}
+      </div>`;
+    const box = mount.querySelector(".quiz-options");
+    question.opts.forEach(([value, label]) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "quiz-option";
+      b.textContent = label;
+      b.addEventListener("click", () => {
+        answers[question.key] = value;
+        index += 1;
+        if (index >= WHERE_QUESTIONS.length) {
+          const resultKey = scoreWhereQuiz(answers);
+          const result = { resultKey, ...WHERE_RESULTS[resultKey], answers: { ...answers }, ts: new Date().toISOString() };
+          try { localStorage.setItem("mm_where_quiz_result", JSON.stringify(result)); } catch {}
+          showToast("Where quiz saved.");
+          renderResult(result);
+        } else renderQuestion();
+      });
+      box.appendChild(b);
+    });
+    mount.querySelector("#whereBack")?.addEventListener("click", () => { index = Math.max(0, index - 1); renderQuestion(); });
+  }
+
+  if (saved?.resultKey && WHERE_RESULTS[saved.resultKey]) renderResult(saved);
+  else renderQuestion();
+}
+
+const BUY_RESULTS = {
+  ssb: {
+    name: "Singapore Savings Bonds",
+    rank: "Clear pick for safety",
+    cardIndex: 0,
+    risk: "Very low",
+    why: "Your answers point to capital protection, flexibility, or a short horizon. SSBs are government-backed and can be redeemed monthly.",
+    caveat: "Growth is lower than stocks. That is acceptable when safety is the main job."
+  },
+  tbill: {
+    name: "T-bills or fixed deposits",
+    rank: "Clear pick for short-term cash",
+    cardIndex: 1,
+    risk: "Low",
+    why: "Your answers point to money with a known short-term job. T-bills and fixed deposits fit cash you do not want exposed to market swings.",
+    caveat: "Money is locked until maturity and rates vary. Compare current options before applying."
+  },
+  sti: {
+    name: "STI ETF via a regular savings plan",
+    rank: "Clear pick for long-term beginners",
+    cardIndex: 2,
+    risk: "Moderate",
+    why: "Your answers point to long-term growth and a repeatable habit. A broad ETF spreads risk across many companies instead of one stock.",
+    caveat: "It can fall sharply in bad years. Only use money you can leave invested for years."
+  },
+  robo: {
+    name: "Robo-advisor portfolio",
+    rank: "Clear pick for hands-off beginners",
+    cardIndex: 3,
+    risk: "Moderate",
+    why: "Your answers point to wanting the portfolio built and rebalanced for you. Robo portfolios can provide diversified ETF exposure with less manual work.",
+    caveat: "Fees and risk level matter. Check what the app actually holds before funding it."
+  }
+};
+
+const BUY_QUESTIONS = [
+  { key: "horizon", q: "When do you need this money?", opts: [["short", "Within 6-12 months"], ["medium", "In 1-3 years"], ["long", "5+ years"]] },
+  { key: "loss", q: "Could you accept a temporary 20% drop?", opts: [["no", "No"], ["maybe", "Maybe, if it is a small amount"], ["yes", "Yes, for long-term money"]] },
+  { key: "style", q: "Which buying style do you prefer?", opts: [["safe", "Safe and flexible"], ["locked", "Known short-term return"], ["monthly", "Monthly ETF habit"], ["handsOff", "Managed for me"]] },
+  { key: "goal", q: "What is the main job of this purchase?", opts: [["protect", "Protect my first amount"], ["learn", "Learn investing safely"], ["growth", "Grow over years"], ["income", "Understand dividends or income"]] },
+  { key: "effort", q: "How much product choice do you want?", opts: [["low", "One simple answer"], ["medium", "A guided shortlist"], ["high", "I want to compare details"]] }
+];
+
+function scoreBuyQuiz(answers) {
+  if (answers.horizon === "short" || answers.loss === "no" || answers.goal === "protect") {
+    return answers.style === "locked" ? "tbill" : "ssb";
+  }
+  if (answers.style === "handsOff" || answers.effort === "low") return "robo";
+  if (answers.style === "locked" && answers.horizon === "medium") return "tbill";
+  return "sti";
+}
+
+function setupBuyQuiz() {
+  const mount = document.getElementById("buyQuiz");
+  if (!mount) return;
+  const saved = readJson("mm_buy_quiz_result", null);
+  const answers = {};
+  let index = 0;
+
+  function highlightBuyCard(cardIndex) {
+    const cards = document.querySelectorAll(".inv-card");
+    cards.forEach((card, i) => {
+      card.style.outline = i === cardIndex ? "3px solid var(--forest)" : "";
+      card.style.outlineOffset = i === cardIndex ? "2px" : "";
+    });
+  }
+
+  function renderResult(result) {
+    const r = BUY_RESULTS[result.resultKey];
+    mount.innerHTML = `
+      <div class="wizard-shell tool-quiz buy-result">
+        <div class="quiz-top"><span>What-to-buy result</span><span>${new Date(result.ts).toLocaleDateString("en-SG")}</span></div>
+        <span class="pill" style="margin-bottom:10px">${r.rank}</span>
+        <h3 class="wizard-lane">${r.name}</h3>
+        <p><b>Why:</b> ${r.why}</p>
+        <p><b>Risk to respect:</b> ${r.caveat}</p>
+        <div class="wizard-scores">
+          <span class="pill">Risk: ${r.risk}</span>
+          <span class="pill">One clear recommendation</span>
+          <span class="pill">Analysis below</span>
+        </div>
+        <div class="hero-cta" style="margin-top:14px">
+          <a class="btn btn-primary btn-sm" href="smart-picks.html">Build a portfolio from my profile</a>
+          <button class="btn btn-ghost btn-sm prompt-ai" type="button" data-question="My MoneyMentor What-to-buy quiz result is ${r.name}. Explain why this is the clear first pick for me, what risks to check, and what alternatives I should compare in Singapore.">Ask AI to explain</button>
+          <button class="btn btn-ghost btn-sm" id="retakeBuyQuiz" type="button">Retake What quiz</button>
+        </div>
+      </div>`;
+    highlightBuyCard(r.cardIndex);
+    mount.querySelector("#retakeBuyQuiz").addEventListener("click", () => { index = 0; Object.keys(answers).forEach((k) => delete answers[k]); renderQuestion(); });
+    mount.querySelector(".prompt-ai").addEventListener("click", (e) => openChatWithQuestion(e.currentTarget.dataset.question));
+  }
+
+  function renderQuestion() {
+    const question = BUY_QUESTIONS[index];
+    mount.innerHTML = `
+      <div class="wizard-shell tool-quiz">
+        <div class="quiz-top"><span>What to buy quiz</span><span>Question ${index + 1} of ${BUY_QUESTIONS.length}</span></div>
+        <div class="quiz-bar"><span style="width:${Math.round((index / BUY_QUESTIONS.length) * 100)}%"></span></div>
+        <div class="quiz-question">${question.q}</div>
+        <div class="quiz-options"></div>
+        ${index > 0 ? '<button class="mini-btn" id="buyBack" type="button" style="margin-top:10px">Back</button>' : ""}
+      </div>`;
+    const box = mount.querySelector(".quiz-options");
+    question.opts.forEach(([value, label]) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "quiz-option";
+      b.textContent = label;
+      b.addEventListener("click", () => {
+        answers[question.key] = value;
+        index += 1;
+        if (index >= BUY_QUESTIONS.length) {
+          const resultKey = scoreBuyQuiz(answers);
+          const result = { resultKey, ...BUY_RESULTS[resultKey], answers: { ...answers }, ts: new Date().toISOString() };
+          try { localStorage.setItem("mm_buy_quiz_result", JSON.stringify(result)); } catch {}
+          showToast("What-to-buy result saved.");
+          renderResult(result);
+        } else renderQuestion();
+      });
+      box.appendChild(b);
+    });
+    mount.querySelector("#buyBack")?.addEventListener("click", () => { index = Math.max(0, index - 1); renderQuestion(); });
+  }
+
+  if (saved?.resultKey && BUY_RESULTS[saved.resultKey]) renderResult(saved);
+  else renderQuestion();
+}
+
+/* ==========================================================================
+   MARKET WIDGETS - chart explainer, STI constituents, DCA calculator,
+   good-time teaching, market mood. All educational; only the TradingView
+   chart is live data.
+   ========================================================================== */
+const STI_CONSTITUENTS = [
+  ["DBS Group", "Bank", "~20%"], ["OCBC Bank", "Bank", "~11%"], ["UOB", "Bank", "~10%"],
+  ["Singtel", "Telecom", "~7%"], ["Jardine Matheson", "Conglomerate", "~5%"],
+  ["CapitaLand Int. Commercial Trust", "REIT", "~4%"], ["Keppel", "Industrial", "~4%"],
+  ["ST Engineering", "Industrial", "~4%"], ["Sembcorp", "Utilities", "~3%"], ["Genting Singapore", "Leisure", "~2%"]
+];
+
+function setupMarketWidgets() {
+  // 1. How to read this chart
+  const explain = document.getElementById("chartExplainer");
+  if (explain) {
+    explain.innerHTML = `
+      <details class="market-explainer">
+        <summary>New to charts? How to read this line</summary>
+        <ul class="mini-list">
+          <li><b>The line is the STI:</b> Singapore's broad market benchmark.</li>
+          <li><b>Daily moves are noise:</b> beginners should think in years, not hours.</li>
+          <li><b>Red days are normal:</b> selling in panic can turn a temporary dip into a real loss.</li>
+          <li><b>You buy exposure through ETFs:</b> not the index itself.</li>
+        </ul>
+      </details>`;
+  }
+
+  // 2. What's inside the STI
+  const consti = document.getElementById("stiConstituents");
+  if (consti) {
+    consti.innerHTML = `
+      <h3 style="margin-bottom:6px">What's actually inside the STI?</h3>
+      <p style="color:var(--muted);margin-bottom:10px">An STI ETF gives you one slice of many Singapore names. The weights below are teaching estimates, not a live factsheet.</p>
+      <div class="consti-grid">
+        ${STI_CONSTITUENTS.map(([name, sector, weight]) => `<div class="consti-item"><b>${name}</b><span>${sector}</span><span class="pill">${weight}</span></div>`).join("")}
+      </div>
+      <p class="disclaimer" style="margin-top:8px">Notice the banks alone are roughly 40% - when rate news moves banks, it moves the whole index.</p>`;
+  }
+
+  // 3. DCA / compound growth calculator
+  const calc = document.getElementById("dcaCalc");
+  if (calc) {
+    calc.innerHTML = `
+      <h3 style="margin-bottom:6px">What could S$X a month become?</h3>
+      <p style="color:var(--muted);margin-bottom:12px">A compounding illustration only. Real returns are not guaranteed.</p>
+      <div class="calc-row">
+        <label>Monthly amount (S$)<input type="number" id="calcMonthly" value="100" min="10" max="10000" step="10"></label>
+        <label>Years<input type="number" id="calcYears" value="10" min="1" max="40"></label>
+        <label>Assumed yearly return<select id="calcRate">
+          <option value="0.02">2% (very safe, SSB-like)</option>
+          <option value="0.04" selected>4% (balanced)</option>
+          <option value="0.06">6% (diversified equities, long-term)</option>
+          <option value="0.08">8% (optimistic)</option>
+        </select></label>
+      </div>
+      <div class="calc-out" id="calcOut"></div>
+      <div id="calcChart"></div>`;
+    const run = () => {
+      const monthly = Math.max(0, Number(document.getElementById("calcMonthly").value) || 0);
+      const years = Math.min(40, Math.max(1, Number(document.getElementById("calcYears").value) || 1));
+      const rate = Number(document.getElementById("calcRate").value) / 12;
+      let value = 0; const points = [];
+      for (let m = 1; m <= years * 12; m++) { value = (value + monthly) * (1 + rate); if (m % 12 === 0) points.push(value); }
+      const contributed = monthly * years * 12;
+      document.getElementById("calcOut").innerHTML = `
+        <div class="calc-stat"><span>You put in</span><b>S$${Math.round(contributed).toLocaleString("en-SG")}</b></div>
+        <div class="calc-stat"><span>Illustrative value</span><b>S$${Math.round(value).toLocaleString("en-SG")}</b></div>
+        <div class="calc-stat"><span>Growth doing the work</span><b>S$${Math.round(value - contributed).toLocaleString("en-SG")}</b></div>`;
+      const max = Math.max(...points, 1); const w = 320, h = 90;
+      const bars = points.map((p, i) => `<rect x="${(i * w / points.length).toFixed(1)}" y="${(h - p / max * h).toFixed(1)}" width="${Math.max(2, w / points.length - 2).toFixed(1)}" height="${(p / max * h).toFixed(1)}" rx="1.5" fill="var(--forest)" opacity="${0.35 + 0.65 * (i / points.length)}"/>`).join("");
+      document.getElementById("calcChart").innerHTML = `<svg viewBox="0 0 ${w} ${h}" style="width:100%;max-width:420px;height:auto;margin-top:10px" aria-label="Growth per year">${bars}</svg>`;
+    };
+    ["calcMonthly", "calcYears", "calcRate"].forEach((id) => document.getElementById(id).addEventListener("input", run));
+    run();
+  }
+
+  // 4. "Is now a good time?" teaching
+  const timing = document.getElementById("goodTime");
+  if (timing) {
+    timing.innerHTML = `
+      <h3 style="margin-bottom:6px">"Is now a good time to invest?"</h3>
+      <p style="margin-bottom:8px">Honest answer: <b>nobody reliably knows</b>. Beginners control the habit, not the headlines.</p>
+      <ul class="mini-list">
+        <li><b>DCA:</b> invest a fixed amount monthly instead of guessing the perfect day.</li>
+        <li><b>Horizon first:</b> money needed soon belongs in safer tools like SSBs or T-bills.</li>
+        <li><b>Practise first:</b> use Market Run before real money meets a crash.</li>
+      </ul>
+      <div class="hero-cta"><a class="btn btn-ghost btn-sm" href="practice.html">Practise a market year</a>
+      <button class="btn btn-ghost btn-sm prompt-ai" type="button" data-question="Explain dollar-cost averaging with a concrete Singapore example (S$100 a month into an STI ETF), including what happens in a falling market.">Ask Bot about DCA</button></div>`;
+    timing.querySelector(".prompt-ai")?.addEventListener("click", (e) => openChatWithQuestion(e.currentTarget.dataset.question, { mode: "widget" }));
+  }
+
+  // 5. Market mood - explicitly educational
+  const mood = document.getElementById("marketMood");
+  if (mood) {
+    mood.innerHTML = `
+      <h3 style="margin-bottom:6px">Market mood, without overreacting</h3>
+      <p style="margin-bottom:8px">"Risk-on" means optimism. "Risk-off" means fear. Useful for context, not prediction.</p>
+      <ul class="mini-list">
+        <li>Mood explains why things moved. It does not tell you tomorrow.</li>
+        <li>If your plan changes with every mood swing, the plan is too fragile.</li>
+      </ul>
+      <p class="disclaimer">Educational explainer - MoneyMentor does not publish live sentiment signals.</p>`;
+  }
+}
+
+/* ==========================================================================
+   WATCHLIST - personal, local. Save things to learn about; ask AI about them.
+   ========================================================================== */
+const WATCHABLE = [
+  "STI ETF", "S&P 500 / global ETF", "DBS", "OCBC", "UOB", "Singtel",
+  "CapitaLand Int. Commercial Trust (REIT)", "Mapletree Logistics Trust (REIT)",
+  "ABF SG Bond ETF", "Singapore Savings Bonds", "T-bills", "Robo-advisors", "Gold", "REITs in general"
+];
+
+function getWatchlist() { return readJson("mm_watchlist", []); }
+function saveWatchlist(list) { try { localStorage.setItem("mm_watchlist", JSON.stringify(list.slice(0, 30))); } catch {} }
+
+function setupWatchlist() {
+  const mount = document.getElementById("watchlist");
+  if (!mount) return;
+  const render = () => {
+    const list = getWatchlist();
+    mount.innerHTML = `
+      <h3 style="margin-bottom:6px">Your watchlist <span class="pill" style="font-size:.6rem;vertical-align:middle">Private to this browser</span></h3>
+      <p style="color:var(--muted);margin-bottom:10px">Use this as a learning list, not a buy list. Save names you want to understand, then ask the bot to explain the risk before you touch real money.</p>
+      <div class="watch-chips">${WATCHABLE.map((w) => `<button type="button" class="watch-chip ${list.includes(w) ? "on" : ""}" data-w="${w}">${list.includes(w) ? "✓ " : "+ "}${w}</button>`).join("")}</div>
+      ${list.length ? `<div class="hero-cta" style="margin-top:12px">
+        <button class="btn btn-primary btn-sm prompt-ai" type="button" data-question="My MoneyMentor watchlist: ${list.join(", ")}. For each item, explain in one beginner-friendly paragraph what it is, its risk level, and one thing I should learn before touching it. Use trusted Singapore sources.">Ask Bot about my watchlist</button>
+        <button class="btn btn-ghost btn-sm" id="clearWatch" type="button">Clear list</button></div>` : ""}`;
+    mount.querySelectorAll(".watch-chip").forEach((chip) => chip.addEventListener("click", () => {
+      const w = chip.dataset.w; let l = getWatchlist();
+      openChatWithQuestion(`Explain ${w} from my MoneyMentor watchlist for a beginner in Singapore. What is it, what is its risk level, and what should I learn before touching it? Use trusted Singapore sources.`, { mode: "widget" });
+      l = l.includes(w) ? l.filter((x) => x !== w) : [...l, w];
+      saveWatchlist(l); render();
+    }));
+    mount.querySelector("#clearWatch")?.addEventListener("click", () => { saveWatchlist([]); render(); });
+    mount.querySelectorAll(".prompt-ai").forEach((b) => b.addEventListener("click", () => openChatWithQuestion(b.dataset.question, { mode: "widget" })));
+  };
+  render();
+}
+
+/* ==========================================================================
+   MARKET PULSE - restored floating system (from the original build) +
+   standalone page. FAB with unread count, slide-in sidebar, one-time toast.
+   ========================================================================== */
+const PULSE_POPUPS_KEY = "mm_pulse_toast_seen";
+
+function pulseUnreadCount() {
+  const opened = readJson(PULSE_OPENED_KEY, []);
+  return MARKET_ALERTS.filter((a) => !opened.includes(a.id)).length;
+}
+
+function setupPulseSystem() {
+  const page = document.body.dataset.page;
+  if (page === "chat" || page === "practice" || document.getElementById("pulsePageGrid")) return; // keep the game + chat immersive
+  // FAB
+  const fab = document.createElement("button");
+  fab.type = "button";
+  fab.className = "pulse-fab";
+  fab.setAttribute("aria-label", "Open Market Pulse");
+  fab.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span class="pulse-count" id="pulseCount"></span>`;
+  document.body.appendChild(fab);
+
+  // Sidebar
+  const backdrop = document.createElement("div");
+  backdrop.className = "pulse-backdrop";
+  const sidebar = document.createElement("aside");
+  sidebar.className = "pulse-sidebar";
+  sidebar.setAttribute("aria-label", "Market Pulse");
+  sidebar.innerHTML = `
+    <div class="pulse-side-head"><b>Market Pulse</b><span class="pill" style="font-size:.6rem">Teaching examples - not live news</span><button type="button" class="pulse-close" aria-label="Close">×</button></div>
+    <div class="pulse-side-list" id="pulseSideList"></div>
+    <div class="pulse-side-foot"><a href="market-pulse.html">Open the full Market School →</a></div>`;
+  document.body.append(backdrop, sidebar);
+
+  const renderList = () => {
+    const opened = readJson(PULSE_OPENED_KEY, []);
+    document.getElementById("pulseSideList").innerHTML = MARKET_ALERTS.map((a) => `
+      <a class="pulse-item ${opened.includes(a.id) ? "read" : ""}" href="market-pulse.html#${a.id}">
+        <span class="pulse-dot"></span>
+        <span><b>${a.title}</b><span>${a.short}</span></span>
+      </a>`).join("");
+    const count = pulseUnreadCount();
+    const badge = document.getElementById("pulseCount");
+    if (badge) { badge.textContent = count || ""; badge.style.display = count ? "grid" : "none"; }
+  };
+
+  const open = () => { sidebar.classList.add("open"); backdrop.classList.add("show"); renderList(); };
+  const close = () => { sidebar.classList.remove("open"); backdrop.classList.remove("show"); };
+  fab.addEventListener("click", open);
+  backdrop.addEventListener("click", close);
+  sidebar.querySelector(".pulse-close").addEventListener("click", close);
+  renderList();
+
+  // One-time toast (never nags twice)
+  try {
+    if (!localStorage.getItem(PULSE_POPUPS_KEY) && pulseUnreadCount() > 0 && page === "home") {
+      const toast = document.createElement("div");
+      toast.className = "pulse-toast";
+      toast.innerHTML = `<b>Market Pulse:</b> ${MARKET_ALERTS[0].title} <button type="button">Read</button><button type="button" class="ghost">Dismiss</button>`;
+      document.body.appendChild(toast);
+      requestAnimationFrame(() => toast.classList.add("show"));
+      const [read, dismiss] = toast.querySelectorAll("button");
+      read.addEventListener("click", () => { location.href = "market-pulse.html#" + MARKET_ALERTS[0].id; });
+      dismiss.addEventListener("click", () => toast.remove());
+      setTimeout(() => toast.remove(), 12000);
+      localStorage.setItem(PULSE_POPUPS_KEY, "1");
+    }
+  } catch {}
+}
+
+/* Standalone Market Pulse page (market-pulse.html) */
+function setupPulsePage() {
+  const grid = document.getElementById("pulsePageGrid");
+  if (!grid) return;
+  const opened = readJson(PULSE_OPENED_KEY, []);
+  grid.innerHTML = MARKET_ALERTS.map((a) => `
+    <article class="pulse-card ${opened.includes(a.id) ? "read" : ""}" id="${a.id}">
+      <span class="eyebrow">${a.label} · teaching example</span>
+      <h3>${a.title}</h3>
+      <p><b>What happened:</b> ${a.happened}</p>
+      <p><b>Why it matters:</b> ${a.why}</p>
+      <p><b>What a beginner should do:</b> ${a.beginner}</p>
+      <p style="color:var(--muted)"><b>Risk context:</b> ${a.riskContext}</p>
+      <div class="hero-cta" style="margin-top:10px">
+        ${a.source ? `<a class="btn btn-ghost btn-sm" href="${a.source.href}" target="_blank" rel="noopener">Real source: ${a.source.name}</a>` : ""}
+        <button class="btn btn-ghost btn-sm prompt-ai" type="button" data-question="Explain this market situation for a beginner in Singapore: ${a.title}. ${a.short} What should I understand and what mistakes should I avoid?">Ask AI about this</button>
+        <a class="btn btn-ghost btn-sm" href="practice.html">Practise an event like this</a>
+      </div>
+    </article>`).join("");
+  grid.querySelectorAll(".prompt-ai").forEach((b) => b.addEventListener("click", () => openChatWithQuestion(b.dataset.question)));
+  // mark all as opened once viewed
+  try { localStorage.setItem(PULSE_OPENED_KEY, JSON.stringify(MARKET_ALERTS.map((a) => a.id))); } catch {}
+}
+
+function setupMarketLabels() {
+  const list = document.getElementById("newsList");
+  if (!list) return;
+  const banner = document.createElement("div");
+  banner.className = "callout callout-warn";
+  banner.style.margin = "0 0 18px";
+  banner.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span><b>Sample educational updates, not live news.</b> These explain how common market events work. For today\u2019s actual news, use the linked sources or the live STI chart above.</span>';
+  list.parentNode.insertBefore(banner, list);
+}
+
+/* ---------- profile evidence export ---------- */
+function setupEvidenceExport() {
+  document.getElementById("exportEvidenceBtn")?.addEventListener("click", exportLearningEvidence);
 }
 
 /* ---------- reveal on scroll ---------- */
@@ -1103,15 +2067,33 @@ function setupAnchorScroll() {
 setupNavigation();
 updateProfileUi();
 applyBeginnerMode();
-trackDailyVisit();
-renderXp();
+setupSelfTests();
 setupHomeDashboard();
 setupProfilePage();
 setupGlossary();
 setupQuiz();
 setupMarketNews();
+setupLiveMarketNews();
+setupMarketDecoder();
 setupChatTriggers();
+loadChatWidget();
+setupWhereQuiz();
+setupBuyQuiz();
+setupPersonalPlan();
+setupMarketWidgets();
+setupWatchlist();
+setupMarketLabels();
+setupPulseSystem();
+setupPulsePage();
+setupEvidenceExport();
 setupReveal();
 setupAnchorScroll();
 updateProgress();
-loadChatWidget();
+
+/* ---------- shared API for the AI chat workspace (chat.html) ---------- */
+window.MM = {
+  getProfile,
+  getChatMetadata,
+  CHAT_WEBHOOK_URL,
+  exportLearningEvidence
+};

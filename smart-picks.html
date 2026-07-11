@@ -4,15 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Building a simple portfolio - MoneyMentor</title>
-<meta name="description" content="Example beginner portfolios for S$500 in Singapore: a ranked shortlist with reasons, risks, and platform routes - not vague homework.">
+<meta name="description" content="Build a simple beginner portfolio from your saved MoneyMentor profile: budget, risk comfort, time horizon, goal, emergency fund status, and monthly set-aside amount.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet">
 <link rel="stylesheet" href="assets/styles.css">
 </head>
-<body data-page="learn">
+<body data-page="learn" data-lesson="portfolio">
 <a class="skip-link" href="#main">Skip to content</a>
 
 <header class="site-header"><div class="wrap header-inner">
@@ -22,6 +22,7 @@
     <a href="learn.html" data-nav="learn">Learn</a>
     <a href="practice.html" data-nav="practice">Practice</a>
     <a href="market.html" data-nav="market">Market</a>
+    <a href="chat.html" data-nav="chat">Ask AI</a>
   </nav>
   <div class="header-actions">
     <button class="btn btn-primary open-chat" type="button">Ask<span class="header-chat-label">&nbsp;MoneyMentor</span></button>
@@ -33,17 +34,18 @@
 <main id="main">
 
   <section class="page-head"><div class="wrap">
-    <span class="step-tag">Learn &middot; Portfolios</span>
-    <h1>A simple first portfolio, by example.</h1>
-    <p>Direct examples, not vague homework: a sensible shortlist first, then the reason, the risk, and the platform route &mdash; so you can make a clearer decision yourself.</p>
+    <span class="step-tag">Learn &middot; Build a portfolio</span>
+    <h1>A simple portfolio built from your profile.</h1>
+    <p>This is not a quiz. It uses the profile you save - budget, risk, horizon, goal, emergency fund, and set-aside amount - then shows a clean starter split with the reasoning underneath.</p>
   </div></section>
 
   <section class="sec"><div class="wrap">
+    <div id="personalPlan"></div>
     <div class="recommend-grid">
 
       <article class="recommend-card reveal">
-        <h2>The S$500 starter shortlist</h2>
-        <p>Default assumption: a beginner in Singapore with moderate risk comfort who wants a simple, sensible first step.</p>
+        <h2>The general S$500 starter shortlist</h2>
+        <p>The plan above adapts to <em>your</em> saved profile. This general shortlist is only a comparison for a moderate-risk beginner.</p>
         <ol class="rec-list">
           <li class="rec-item"><span class="rec-num" aria-hidden="true">1</span><div>
             <h3>Singapore Savings Bonds</h3>
@@ -62,7 +64,7 @@
           </div></li>
           <li class="rec-item"><span class="rec-num" aria-hidden="true">4</span><div>
             <h3>Blue-chip learning candidates</h3>
-            <p>DBS, OCBC, UOB, Singtel, and large REITs are useful to study &mdash; but one company is never a diversified portfolio.</p>
+            <p>DBS, OCBC, UOB, Singtel, and large REITs are useful to study, but one company is never a diversified portfolio.</p>
             <div class="pill-row"><span class="pill">Best for learning stocks</span><span class="pill warn">Less diversified</span></div>
           </div></li>
         </ol>
@@ -71,7 +73,7 @@
 
       <aside class="split-panel reveal">
         <h2>Example splits</h2>
-        <p>Three honest ways to divide a first S$500, depending on what you care about most.</p>
+        <p>Three honest ways to think about a first S$500, depending on what matters most.</p>
         <div class="split-list">
           <div class="split-box">
             <h3>Conservative</h3>
@@ -99,14 +101,14 @@
           </div>
         </div>
         <div class="hero-cta" style="margin-top:20px">
-          <button class="btn btn-primary prompt-ai" type="button" data-question="I have S$500 in Singapore. Give me a direct beginner shortlist with suggested allocation, reasons, risks, and platform routes.">Ask for a plan that fits my profile</button>
+          <button class="btn btn-primary prompt-ai" type="button" data-question="Use my saved MoneyMentor profile to review my simple portfolio plan. Explain the allocation, risks, and what I should learn before investing real money.">Ask AI to review my profile plan</button>
         </div>
       </aside>
 
     </div>
 
     <div class="step-footer">
-      <a class="btn btn-ghost" href="invest.html">Back: What beginners can buy</a>
+      <a class="btn btn-ghost" href="invest.html#buyQuiz">Back: What to buy</a>
       <a class="btn btn-primary" href="sources-safety.html">Next: Avoiding scams</a>
     </div>
   </div></section>

@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MoneyMentor - Your first step into investing</title>
-<meta name="description" content="MoneyMentor is an investing companion for young Singaporeans: plain-English lessons, a market simulator game, real news decoded, and an AI coach.">
+<meta name="description" content="MoneyMentor is a guided investing companion for young Singaporeans: plain-English lessons, a practice simulator, and market news without the jargon.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet">
 <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body data-page="home">
@@ -22,6 +22,7 @@
     <a href="learn.html" data-nav="learn">Learn</a>
     <a href="practice.html" data-nav="practice">Practice</a>
     <a href="market.html" data-nav="market">Market</a>
+    <a href="chat.html" data-nav="chat">Ask AI</a>
   </nav>
   <div class="header-actions">
     <button class="btn btn-primary open-chat" type="button">Ask<span class="header-chat-label">&nbsp;MoneyMentor</span></button>
@@ -35,10 +36,10 @@
   <section class="dash-hero"><div class="wrap">
     <p class="dash-greeting" id="dashGreeting">Welcome.</p>
     <h1>Investing feels complicated. Let&rsquo;s make your first step clear.</h1>
-    <p class="lead">MoneyMentor turns investing into something you can actually play with &mdash; short visual lessons, a market simulator with pretend money, real news decoded, and a coach that never sleeps.</p>
+    <p class="lead">MoneyMentor walks you from &ldquo;what is an ETF?&rdquo; to a sensible first S$100&ndash;S$500 plan &mdash; with lessons, a no-real-money practice lab, and answers in plain English.</p>
     <div class="hero-cta">
-      <a class="btn btn-primary" href="practice.html">Play Market Run</a>
-      <a class="btn btn-ghost" href="learn.html">Learn the basics</a>
+      <a class="btn btn-primary" href="where.html#whereQuiz">Find my route</a>
+      <button class="btn btn-ghost open-chat" type="button">Ask MoneyMentor a question</button>
     </div>
     <div class="trust-row">
       <span>Grounded in official Singapore sources:</span>
@@ -64,17 +65,48 @@
 
   <section class="sec" style="padding-top:40px"><div class="wrap">
 
-    <div class="mento-card" aria-label="Your coach Mento">
-      <svg class="mento-bot" viewBox="0 0 60 60" fill="none" aria-hidden="true"><rect x="10" y="18" width="40" height="32" rx="12" fill="#fff" stroke="#0A4F3B" stroke-width="3"/><rect x="22" y="6" width="16" height="14" rx="6" fill="#fff" stroke="#0A4F3B" stroke-width="3"/><circle cx="30" cy="10" r="2.5" fill="#7BE6A8"/><circle cx="23" cy="33" r="3.2" fill="#0A4F3B"/><circle cx="37" cy="33" r="3.2" fill="#0A4F3B"/><path d="M23 42 Q30 47 37 42" stroke="#0A4F3B" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
-      <div>
-        <div class="mento-head">
-          <h2><span id="xpLevelNum">Level 1</span> &middot; <span id="xpLevelTitle">Total Newbie</span></h2>
-          <span class="mento-chip" id="xpStreak">1-day streak</span>
-          <span class="mento-chip" id="xpTotal">0 XP</span>
-        </div>
-        <div class="xp-bar" role="presentation"><div class="xp-bar-fill" id="xpBarFill"></div></div>
-        <div class="xp-meta"><span id="xpCount">0 / 100 XP to Level 2</span><span>Earn XP: play Market Run, decode news, ace the quiz</span></div>
-        <p class="mento-tip"><b>Mento says:</b> <span id="mentoTip"></span></p>
+    <div class="hub" aria-label="What do you want to do today?">
+      <div class="journey-head" style="margin-bottom:4px">
+        <h2>What do you want to do today?</h2>
+        <span class="journey-count">Every tool here works every visit &mdash; nothing to "complete"</span>
+      </div>
+      <div class="hub-grid">
+        <a class="hub-item" href="where.html#whereQuiz">
+          <span class="hub-ico">&#129517;</span><b>Find my route</b>
+          <span>Answer the Where quiz and choose the route that fits your horizon, safety needs, and confidence.</span>
+        </a>
+        <button class="hub-item open-chat" type="button">
+          <span class="hub-ico">&#128172;</span><b>Ask the AI anything</b>
+          <span>It knows your profile, wizard result, and watchlist &mdash; answers with reasons, risks, and sources.</span>
+        </button>
+        <a class="hub-item" href="practice.html">
+          <span class="hub-ico">&#127918;</span><b>Play Market Run</b>
+          <span>Survive a market year with virtual cash. Five difficulty levels, real-world events, personal bests.</span>
+        </a>
+        <a class="hub-item" href="invest.html#buyQuiz">
+          <span class="hub-ico">&#127919;</span><b>What should I buy?</b>
+          <span>Use the What-to-buy quiz for one clear first recommendation, with the analysis underneath.</span>
+        </a>
+        <a class="hub-item" href="smart-picks.html">
+          <span class="hub-ico">&#128202;</span><b>Build my portfolio</b>
+          <span>Turn your saved profile into a simple starter allocation with clear reasons and risks.</span>
+        </a>
+        <a class="hub-item" href="market.html">
+          <span class="hub-ico">&#128200;</span><b>Check the market</b>
+          <span>Live STI chart, what&rsquo;s inside the index, a compounding calculator, and your watchlist.</span>
+        </a>
+        <a class="hub-item" href="sources-safety.html">
+          <span class="hub-ico">&#128737;</span><b>Check if it&rsquo;s a scam</b>
+          <span>Red flags and how to verify any firm on the MAS Investor Alert List before money moves.</span>
+        </a>
+        <a class="hub-item" href="library.html">
+          <span class="hub-ico">&#128218;</span><b>Look up a term</b>
+          <span>ETF, REIT, DCA, T-bill&hellip; every piece of jargon, explained in one plain-English line.</span>
+        </a>
+        <a class="hub-item" href="learning-room.html">
+          <span class="hub-ico">&#129504;</span><b>Test my level</b>
+          <span>The 10-question quiz with topic diagnosis &mdash; retake it any time and watch your level climb.</span>
+        </a>
       </div>
     </div>
 
@@ -86,13 +118,13 @@
           <p class="footer-note" style="margin-top:14px">Virtual money only &mdash; nothing here touches a real account.</p>
         </div>
         <div class="dash-card dash-market">
-          <div class="dash-card-head"><h2>The market right now</h2><a href="market.html">All updates</a></div>
+          <div class="dash-card-head"><h2>One thing from the market <span class="pill" style="font-size:.6rem;vertical-align:middle">Sample</span></h2><a href="market.html">All updates</a></div>
           <div id="dashMarket"></div>
         </div>
       </div>
       <div class="dash-col">
         <div class="dash-card">
-          <div class="dash-card-head"><h2>Quiz level</h2><a href="learning-room.html">Take the quiz</a></div>
+          <div class="dash-card-head"><h2>Your learning level</h2><a href="learning-room.html">Take the quiz</a></div>
           <div class="stat-row">
             <div class="stat-tile"><b id="dashLevel">Noob</b><span>Level</span></div>
             <div class="stat-tile"><b id="dashBest">0%</b><span>Best quiz score</span></div>
