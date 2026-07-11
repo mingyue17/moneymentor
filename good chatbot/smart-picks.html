@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Building a simple portfolio - MoneyMentor</title>
+<meta name="description" content="Build a simple beginner portfolio from your saved MoneyMentor profile: budget, risk comfort, time horizon, goal, emergency fund status, and monthly set-aside amount.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body data-page="learn" data-lesson="portfolio">
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header"><div class="wrap header-inner">
+  <a href="index.html" class="brand" aria-label="MoneyMentor home"><svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0E6E52"/><path d="M8 21V12l4 5 4-7 4 6 4-4v9" stroke="#7BE6A8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="10" r="2" fill="#7BE6A8"/></svg>MoneyMentor</a>
+  <nav class="site-nav" id="navLinks" aria-label="Main">
+    <a href="index.html" data-nav="home">Home</a>
+    <a href="learn.html" data-nav="learn">Learn</a>
+    <a href="practice.html" data-nav="practice">Practice</a>
+    <a href="market.html" data-nav="market">Market</a>
+    <a href="chat.html" data-nav="chat">Ask AI</a>
+  </nav>
+  <div class="header-actions">
+    <button class="btn btn-primary open-chat" type="button">Ask<span class="header-chat-label">&nbsp;MoneyMentor</span></button>
+    <a href="profile.html" class="avatar-link" aria-label="Your learning profile"><span data-profile-initial aria-hidden="true">G</span></a>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  </div>
+</div></header>
+
+<main id="main">
+
+  <section class="page-head"><div class="wrap">
+    <span class="step-tag">Learn &middot; Build a portfolio</span>
+    <h1>A simple portfolio built from your profile.</h1>
+    <p>This is not a quiz. It uses the profile you save - budget, risk, horizon, goal, emergency fund, and set-aside amount - then shows a clean starter split with the reasoning underneath.</p>
+  </div></section>
+
+  <section class="sec"><div class="wrap">
+    <div id="personalPlan"></div>
+    <div class="recommend-grid">
+
+      <article class="recommend-card reveal">
+        <h2>The general S$500 starter shortlist</h2>
+        <p>The plan above adapts to <em>your</em> saved profile. This general shortlist is only a comparison for a moderate-risk beginner.</p>
+        <ol class="rec-list">
+          <li class="rec-item"><span class="rec-num" aria-hidden="true">1</span><div>
+            <h3>Singapore Savings Bonds</h3>
+            <p>Top fit when safety matters most. Backed by the Singapore Government, starts from exactly S$500.</p>
+            <div class="pill-row"><span class="pill">Best for safety</span><span class="pill warn">Lower growth</span></div>
+          </div></li>
+          <li class="rec-item"><span class="rec-num" aria-hidden="true">2</span><div>
+            <h3>STI ETF or a regular ETF savings plan</h3>
+            <p>The best first stock-market route, because it spreads money across 30 companies instead of one stock.</p>
+            <div class="pill-row"><span class="pill">Best market exposure</span><span class="pill warn">Market can fall</span></div>
+          </div></li>
+          <li class="rec-item"><span class="rec-num" aria-hidden="true">3</span><div>
+            <h3>Robo-advisor portfolio</h3>
+            <p>Good if you want hands-off, global diversification and don&rsquo;t want to pick anything yourself yet.</p>
+            <div class="pill-row"><span class="pill">Best hands-off route</span><span class="pill warn">Fees and risk level matter</span></div>
+          </div></li>
+          <li class="rec-item"><span class="rec-num" aria-hidden="true">4</span><div>
+            <h3>Blue-chip learning candidates</h3>
+            <p>DBS, OCBC, UOB, Singtel, and large REITs are useful to study, but one company is never a diversified portfolio.</p>
+            <div class="pill-row"><span class="pill">Best for learning stocks</span><span class="pill warn">Less diversified</span></div>
+          </div></li>
+        </ol>
+        <p class="disclaimer">Educational examples only, not licensed financial advice. No investment here is guaranteed to make money.</p>
+      </article>
+
+      <aside class="split-panel reveal">
+        <h2>Example splits</h2>
+        <p>Three honest ways to think about a first S$500, depending on what matters most.</p>
+        <div class="split-list">
+          <div class="split-box">
+            <h3>Conservative</h3>
+            <ul>
+              <li>S$500 &rarr; Singapore Savings Bonds.</li>
+              <li>For when protecting the first amount matters more than growing it.</li>
+            </ul>
+          </div>
+          <div class="split-box">
+            <h3>Balanced beginner</h3>
+            <ul>
+              <li>S$300 &rarr; STI ETF or regular savings plan.</li>
+              <li>S$100 &rarr; kept as a learning buffer.</li>
+              <li>S$100 &rarr; one blue-chip or REIT position, only if affordable.</li>
+            </ul>
+          </div>
+          <div class="split-box">
+            <h3>Platform match</h3>
+            <ul>
+              <li>Safety &rarr; SSB via your bank&rsquo;s app or ATM.</li>
+              <li>Monthly ETF &rarr; regular savings plan (from S$100/month).</li>
+              <li>Direct SGX stocks &rarr; local brokerage + CDP.</li>
+              <li>Hands-off &rarr; robo-advisor.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="hero-cta" style="margin-top:20px">
+          <button class="btn btn-primary prompt-ai" type="button" data-question="Use my saved MoneyMentor profile to review my simple portfolio plan. Explain the allocation, risks, and what I should learn before investing real money.">Ask AI to review my profile plan</button>
+        </div>
+      </aside>
+
+    </div>
+
+    <div class="step-footer">
+      <a class="btn btn-ghost" href="invest.html#buyQuiz">Back: What to buy</a>
+      <a class="btn btn-primary" href="sources-safety.html">Next: Avoiding scams</a>
+    </div>
+  </div></section>
+</main>
+
+<footer class="site-footer"><div class="wrap">
+  <div class="footer-grid">
+    <div>
+      <div class="brand"><svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0E6E52"/><path d="M8 21V12l4 5 4-7 4 6 4-4v9" stroke="#7BE6A8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="10" r="2" fill="#7BE6A8"/></svg>MoneyMentor</div>
+      <p class="footer-note">Free financial education for young Singaporeans. Not licensed financial advice, and never a guarantee of returns. Check any firm on the MAS Investor Alert List before investing real money.</p>
+    </div>
+    <nav class="footer-links" aria-label="Footer">
+      <a href="learn.html">Learn</a>
+      <a href="practice.html">Practice Lab</a>
+      <a href="market.html">Market</a>
+      <a href="sources-safety.html">Sources &amp; safety</a>
+      <a href="profile.html">Profile</a>
+    </nav>
+  </div>
+  <p class="footer-note">&copy; 2026 MoneyMentor &middot; Investing, minus the jargon.</p>
+</div></footer>
+
+<script src="assets/app.js" defer></script>
+</body>
+</html>
