@@ -65,6 +65,9 @@ body[data-page="chat"]{overflow:hidden}
 .msg .content code{font-family:var(--mono);font-size:.82em;background:var(--forest-tint);padding:1px 5px;border-radius:5px}
 .msg .content a{color:var(--forest-deep);font-weight:600}
 .msg .content h1,.msg .content h2,.msg .content h3{font-size:1rem;margin:12px 0 6px}
+.msg .content table{width:100%;border-collapse:collapse;margin:10px 0;font-size:.88rem}
+.msg .content th,.msg .content td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+.msg .content th{background:var(--forest-tint);color:var(--forest-deep);font-weight:750}
 .msg .sources{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:.78rem;color:var(--muted)}
 .msg .sources b{display:block;margin-bottom:4px;font-family:var(--mono);font-size:.64rem;letter-spacing:.1em;text-transform:uppercase}
 .msg .sources a{display:block;color:var(--forest-deep);margin-bottom:2px;overflow-wrap:anywhere}
@@ -251,25 +254,113 @@ document.addEventListener("DOMContentLoaded", () => {
     t = t.replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
     t = t.replace(/(^|\s)\*([^*\n]+)\*(?=\s|$|[.,;:!?])/g, "$1<i>$2</i>");
     t = t.replace(/(https?:\/\/[^\s<)\]]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
-    // lists + headings + paragraphs
+    // tables + lists + headings + paragraphs
     const lines = t.split(/\r?\n/);
     let html = "", inUl = false, inOl = false;
     const closeLists = () => { if (inUl) { html += "</ul>"; inUl = false; } if (inOl) { html += "</ol>"; inOl = false; } };
-    lines.forEach((line) => {
+    for (let i = 0; i < lines.length; i++) {
+      if (/^\s*\|.+\|\s*$/.test(lines[i]) && /^\s*\|?[\s:-]+\|[\s|:-]*\s*$/.test(lines[i + 1] || "")) {
+        closeLists();
+        const headers = lines[i].trim().replace(/^\||\|$/g, "").split("|").map((cell) => cell.trim());
+        i += 2;
+        const rows = [];
+        while (i < lines.length && /^\s*\|.+\|\s*$/.test(lines[i])) {
+          rows.push(lines[i].trim().replace(/^\||\|$/g, "").split("|").map((cell) => cell.trim()));
+          i++;
+        }
+        i--;
+        html += "<table><thead><tr>" + headers.map((h) => `<th>${h}</th>`).join("") + "</tr></thead><tbody>";
+        rows.forEach((row) => { html += "<tr>" + headers.map((_, idx) => `<td>${row[idx] || ""}</td>`).join("") + "</tr>"; });
+        html += "</tbody></table>";
+        continue;
+      }
+      const line = lines[i];
       const l = line.trim();
-      if (!l) { closeLists(); return; }
-      if (/^#{1,3}\s+/.test(l)) { closeLists(); html += "<h3>" + l.replace(/^#{1,3}\s+/, "") + "</h3>"; return; }
-      if (/^[-*]\s+/.test(l)) { if (!inUl) { closeLists(); html += "<ul>"; inUl = true; } html += "<li>" + l.replace(/^[-*]\s+/, "") + "</li>"; return; }
-      if (/^\d+[.)]\s+/.test(l)) { if (!inOl) { closeLists(); html += "<ol>"; inOl = true; } html += "<li>" + l.replace(/^\d+[.)]\s+/, "") + "</li>"; return; }
+      if (!l) { closeLists(); continue; }
+      if (/^#{1,3}\s+/.test(l)) { closeLists(); html += "<h3>" + l.replace(/^#{1,3}\s+/, "") + "</h3>"; continue; }
+      if (/^[-*]\s+/.test(l)) { if (!inUl) { closeLists(); html += "<ul>"; inUl = true; } html += "<li>" + l.replace(/^[-*]\s+/, "") + "</li>"; continue; }
+      if (/^\d+[.)]\s+/.test(l)) { if (!inOl) { closeLists(); html += "<ol>"; inOl = true; } html += "<li>" + l.replace(/^\d+[.)]\s+/, "") + "</li>"; continue; }
       closeLists();
       html += "<p>" + l + "</p>";
-    });
+    }
     closeLists();
     return html;
   }
   function extractSources(text) {
     const urls = [...new Set(String(text || "").match(/https?:\/\/[^\s<)\]"']+/g) || [])];
     return urls.filter((u) => /mas\.gov\.sg|moneysense\.gov\.sg|cpf\.gov\.sg|sgx\.com|reuters\.com|channelnewsasia\.com|businesstimes\.com/i.test(u));
+  }
+  function fixMojibake(text) {
+    return String(text || "")
+      .replace(/ðŸ‘‹/g, "")
+      .replace(/ðŸ˜Š/g, "")
+      .replace(/ðŸŒ±/g, "")
+      .replace(/â€”/g, "-")
+      .replace(/â€“/g, "-")
+      .replace(/â€¦/g, "...")
+      .replace(/â€˜|â€™/g, "'")
+      .replace(/â€œ|â€�/g, '"')
+      .replace(/Â·/g, "·")
+      .replace(/\uFFFD/g, "");
+  }
+  function tryParseJson(value) {
+    try { return JSON.parse(value); } catch { return null; }
+  }
+  function extractTextFromObject(value) {
+    if (value == null) return "";
+    if (typeof value === "string") return value;
+    if (Array.isArray(value)) return value.map(extractTextFromObject).filter(Boolean).join("");
+    if (typeof value !== "object") return "";
+    const directKeys = ["output", "text", "answer", "message", "content", "response", "result"];
+    for (const key of directKeys) {
+      if (typeof value[key] === "string") return value[key];
+      if (value[key] && typeof value[key] === "object") {
+        const nested = extractTextFromObject(value[key]);
+        if (nested) return nested;
+      }
+    }
+    if (value.type === "item" && typeof value.content === "string") return value.content;
+    return "";
+  }
+  function extractStreamingContent(rawText) {
+    let text = String(rawText || "").trim();
+    if (!text) return "";
+    const parsedWhole = tryParseJson(text);
+    if (typeof parsedWhole === "string") text = parsedWhole.trim();
+    else if (parsedWhole) {
+      const wholeText = extractTextFromObject(parsedWhole);
+      if (wholeText && wholeText !== text) return extractStreamingContent(wholeText);
+    }
+    const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    const chunks = [];
+    for (const line of lines) {
+      const clean = line.replace(/^data:\s*/, "");
+      if (clean === "[DONE]") continue;
+      const obj = tryParseJson(clean);
+      if (!obj) continue;
+      if (obj.type === "item" && typeof obj.content === "string") chunks.push(obj.content);
+      else {
+        const content = extractTextFromObject(obj);
+        if (content && obj.type !== "begin" && obj.type !== "end") chunks.push(content);
+      }
+    }
+    return chunks.length ? chunks.join("") : text;
+  }
+  function normalizeAiReply(rawText) {
+    let text = extractStreamingContent(rawText);
+    for (let i = 0; i < 3; i++) {
+      const parsed = tryParseJson(text);
+      if (typeof parsed === "string") text = parsed;
+      else if (parsed) {
+        const extracted = extractTextFromObject(parsed);
+        if (extracted && extracted !== text) text = extractStreamingContent(extracted);
+        else break;
+      } else break;
+    }
+    return fixMojibake(text)
+      .replace(/^\s*["']|["']\s*$/g, "")
+      .replace(/\n{4,}/g, "\n\n\n")
+      .trim();
   }
 
   /* ---------- thread rendering ---------- */
@@ -358,17 +449,54 @@ document.addEventListener("DOMContentLoaded", () => {
     return el;
   }
 
+  function delay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  async function fetchWithTimeout(url, options, timeoutMs = 45000) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async function postAiMessage(payload) {
+    let lastError = null;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const res = await fetchWithTimeout(MM.CHAT_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...payload, attempt })
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const raw = await res.text();
+        const reply = normalizeAiReply(raw);
+        if (!reply) throw new Error("Empty response");
+        return reply;
+      } catch (err) {
+        lastError = err;
+        if (attempt < 3) await delay(900 * attempt);
+      }
+    }
+    throw lastError || new Error("AI request failed");
+  }
+
   async function sendMessage(text) {
     const message = String(text || "").trim();
     if (!message || sending) return;
     let chat = activeChat();
     if (!chat) chat = newChat(false), activeId = chat.id;
+    const messageId = "msg-" + Date.now() + "-" + Math.random().toString(16).slice(2, 8);
 
     // first message becomes the title
     if (!chat.messages.length) {
       chat.title = message.length > 42 ? message.slice(0, 42) + "…" : message;
     }
-    chat.messages.push({ role: "user", content: message, ts: Date.now() });
+    chat.messages.push({ id: messageId, role: "user", content: message, ts: Date.now() });
     saveChats();
     renderSidebar();
     renderThread();
@@ -387,24 +515,24 @@ document.addEventListener("DOMContentLoaded", () => {
       const metadata = MM.getChatMetadata ? MM.getChatMetadata() : {};
       metadata.chatId = chat.id;
       metadata.chatTitle = chat.title;
-      const res = await fetch(MM.CHAT_WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "sendMessage",
-          sessionId: chat.id, // each chat = its own conversation memory in n8n
-          chatInput: message,
-          metadata
-        })
+      const recentMessages = chat.messages.slice(-12).map((m) => ({
+        role: m.role,
+        content: m.content,
+        ts: m.ts
+      }));
+      reply = await postAiMessage({
+        action: "sendMessage",
+        sessionId: chat.id, // each chat = its own conversation memory in n8n
+        messageId,
+        chatInput: message,
+        systemPrompt: metadata.systemPrompt,
+        expectedResponseFormat: metadata.expectedResponseFormat,
+        recentMessages,
+        metadata
       });
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const data = await res.json().catch(() => null);
-      reply = (data && (data.output || data.text || data.answer || data.message)) || "";
-      if (!reply && data) reply = typeof data === "string" ? data : JSON.stringify(data);
-      if (!reply) throw new Error("Empty response");
     } catch (err) {
       isError = true;
-      reply = "I could not reach the MoneyMentor AI service just now. Check your connection (the n8n workflow must be active), then try again. Your message is saved in this chat, so nothing is lost.";
+      reply = "I tried the MoneyMentor AI service several times but could not reach it just now. Check that the n8n workflow is active and your internet is stable, then send the question again. Your message is saved in this chat, so nothing is lost.";
     }
 
     document.getElementById("typingMsg")?.remove();
