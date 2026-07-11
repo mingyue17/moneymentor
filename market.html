@@ -16,7 +16,7 @@
 <a class="skip-link" href="#main">Skip to content</a>
 
 <header class="site-header"><div class="wrap header-inner">
-  <a href="index.html" class="brand" aria-label="MoneyMentor home"><svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0E6E52"/><path d="M8 21V12l4 5 4-7 4 6 4-4v9" stroke="#7BE6A8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="10" r="2" fill="#7BE6A8"/></svg>MoneyMentor</a>
+  <a href="index.html" class="brand" aria-label="MoneyMentor home"><svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0E6E52"/><rect x="6" y="17.5" width="4.2" height="8" rx="1.4" fill="#7BE6A8"/><rect x="13.9" y="13.5" width="4.2" height="12" rx="1.4" fill="#7BE6A8"/><rect x="21.8" y="9.5" width="4.2" height="16" rx="1.4" fill="#7BE6A8"/><path d="M5 23.2c4-.2 6.6-2.4 9-6 2.2-3.3 4.6-5.6 8-6.2" stroke="#F3FBF6" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.7 10.3 23 11l-.7 4.3" stroke="#F3FBF6" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>MoneyMentor</a>
   <nav class="site-nav" id="navLinks" aria-label="Main">
     <a href="index.html" data-nav="home">Home</a>
     <a href="learn.html" data-nav="learn">Learn</a>
@@ -39,7 +39,7 @@
     <p>One chart that matters, and the week&rsquo;s themes translated into plain English. This page is for understanding, not day-trading &mdash; watch the shape over months, not the daily wobble.</p>
     <div class="hero-cta" style="margin-top:18px">
       <button class="btn btn-primary open-chat" type="button">Ask Bot</button>
-      <a class="btn btn-ghost" href="#news">Read live news</a>
+      <a class="btn btn-ghost" href="#news">Read Market School</a>
     </div>
   </div></section>
 
@@ -98,59 +98,25 @@
   </div></section>
 
 
-  <section class="sec market-live-section" id="news"><div class="wrap">
+  <section class="sec" id="news"><div class="wrap">
     <div class="sec-head">
-      <span class="eyebrow">Real market news &middot; live</span>
-      <h2>What&rsquo;s actually happening, right now.</h2>
-      <p>Real headlines from real news providers, updated continuously. Every story shows what happened, when it was published, and which source reported it. Tap any story to read the full report at the source.</p>
+      <span class="eyebrow">Market updates</span>
+      <h2>Market School, translated for beginners.</h2>
+      <p><a href="market-pulse.html">Open the full Market Pulse page &rarr;</a></p>
+      <p>Short examples of common market events. Open one to see the plain-English lesson, risk, and source.</p>
     </div>
-    <article class="live-news-card" aria-label="Live market news">
-      <div class="tv-news-frame">
-        <div class="tradingview-widget-container" style="height:100%;width:100%">
-          <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
-          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>
-          {
-          "feedMode": "market",
-          "market": "stock",
-          "isTransparent": true,
-          "displayMode": "regular",
-          "width": "100%",
-          "height": 520,
-          "colorTheme": "light",
-          "locale": "en"
-          }
-          </script>
-        </div>
-      </div>
-      <div class="market-cap"><span>Live financial news feed via TradingView</span><b>Source and publish time shown on every story</b></div>
-      <noscript><p class="disclaimer">Enable JavaScript to view the live market news feed.</p></noscript>
-    </article>
-    <div class="market-news-helper">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/><path d="M8 9h8M8 13h5"/></svg>
-      <span><b>Headline confusing?</b> Copy it and ask Bot what it means for a beginner in Singapore &mdash; what happened, why prices may move, and whether it should change anything you do.</span>
+    <div class="news-layout">
+      <div class="news-list" id="newsList" aria-label="Market updates"></div>
+      <article class="news-detail" id="newsDetail" aria-live="polite"></article>
     </div>
-    <button class="btn btn-primary btn-sm" id="liveNewsAskBot" type="button" data-question="Explain this market headline for a beginner in Singapore: what happened, why it may move prices, and whether it should change anything I do. Keep it educational, cite the source if I provide one, and do not give buy or sell instructions.">Ask Bot to explain a headline</button>
-  </div></section>
-
-  <section class="sec market-decoder-section" id="news-decoder"><div class="wrap">
-    <div class="sec-head decoder-head">
-      <span class="eyebrow">News decoder &middot; earn XP</span>
-      <h2>Why news moves prices &mdash; the five patterns.</h2>
-      <p>Most market headlines are one of these five stories in disguise. Decode each pattern once, and you will understand most headlines with less panic. 15 XP per pattern.</p>
-      <span class="decoder-xp-total" id="decoderXpTotal" aria-live="polite">0 XP decoded</span>
-    </div>
-    <div class="decoder-layout">
-      <div class="decoder-list" id="marketDecoderList" aria-label="News decoder patterns"></div>
-      <article class="decoder-detail" id="marketDecoderDetail" aria-live="polite"></article>
-    </div>
-    <p class="disclaimer">The decoder teaches recurring patterns; it is educational, never a trade signal. MoneyMentor never places trades or promises returns.</p>
+    <p class="disclaimer">These updates are educational patterns, not live trade alerts. MoneyMentor explains context and affected sectors; it never places trades or promises returns.</p>
   </div></section>
 </main>
 
 <footer class="site-footer"><div class="wrap">
   <div class="footer-grid">
     <div>
-      <div class="brand"><svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0E6E52"/><path d="M8 21V12l4 5 4-7 4 6 4-4v9" stroke="#7BE6A8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="10" r="2" fill="#7BE6A8"/></svg>MoneyMentor</div>
+      <div class="brand"><svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0E6E52"/><rect x="6" y="17.5" width="4.2" height="8" rx="1.4" fill="#7BE6A8"/><rect x="13.9" y="13.5" width="4.2" height="12" rx="1.4" fill="#7BE6A8"/><rect x="21.8" y="9.5" width="4.2" height="16" rx="1.4" fill="#7BE6A8"/><path d="M5 23.2c4-.2 6.6-2.4 9-6 2.2-3.3 4.6-5.6 8-6.2" stroke="#F3FBF6" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.7 10.3 23 11l-.7 4.3" stroke="#F3FBF6" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>MoneyMentor</div>
       <p class="footer-note">Free financial education for young Singaporeans. Not licensed financial advice, and never a guarantee of returns. Check any firm on the MAS Investor Alert List before investing real money.</p>
     </div>
     <nav class="footer-links" aria-label="Footer">

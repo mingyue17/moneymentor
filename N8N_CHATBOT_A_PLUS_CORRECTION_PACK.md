@@ -1,5 +1,15 @@
 # MoneyMentor n8n A+ Chatbot Correction Pack
 
+> **This is a build specification / target design, not a description of the
+> shipped system.** For what is actually live today, see `IMPLEMENTATION_STATUS.md`.
+> Quick reality check as of 12 Jul 2026: the AI Agent, session memory, the
+> `Source_Knowledge_Base` and `user profile` Google Sheets tools, live quote
+> (Yahoo) and news (Alpha Vantage) tools, and `Chat_Log` / `Recommendation_Log`
+> logging **are built**. A dedicated safety-validator node, a schema-enforced
+> structured-output parser, guaranteed citations, and remote data deletion are
+> **not built** — treat those rows below as planned until the status file says
+> otherwise.
+
 Use this file to correct the five chatbot weaknesses:
 
 1. Live daily market/news awareness.

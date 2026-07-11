@@ -12,27 +12,34 @@ const PROFILE_KEY = "mm_learning_profile";
 const SESSION_KEY = "mm_session_id";
 const PROGRESS_KEY = "mm_original_split_progress";
 const PENDING_QUESTION_KEY = "mm_pending_question";
-const BEGINNER_MODE_KEY = "mm_beginner_mode";
 const STORAGE_STAMP_KEY = "mm_storage_last_seen";
 const PRACTICE_KEY = "mm_practice_lab_state";
 const LESSONS_KEY = "mm_lessons_done";
 const MARKET_RUN_STATE_KEY = "mm_marketrun_state";
 const MARKET_RUN_BEST_KEY = "mm_marketrun_best";
 const PULSE_OPENED_KEY = "mm_market_pulse_opened";
-const MARKET_DECODER_KEY = "mm_market_decoder_decoded";
 const STORAGE_EXPIRY_DAYS = 180;
 
 // n8n profile-save webhook (production URL; workflow must be active in n8n).
 const PROFILE_WEBHOOK_URL = "https://n8ngc.codeblazar.org/webhook/5bd93b7b-6804-4958-9626-abc1c84ad60d";
 const CHAT_WEBHOOK_URL = "https://n8ngc.codeblazar.org/webhook/6b73ce01-53e9-4041-83e0-56e91e41b0ea/chat";
 
+// Alpha Vantage live market news. NOTE: this key is visible in the browser.
+// That is acceptable ONLY because this is a student project - use a free,
+// throwaway key and rotate it if it gets abused. Responses are cached to limit
+// calls (Alpha Vantage free tier is ~25 calls/day).
+const ALPHA_VANTAGE_KEY = "VO0IIGN4PDGQ63VY";
+const LIVE_NEWS_CACHE_KEY = "mm_live_news_cache";
+const LIVE_NEWS_TTL_MS = 30 * 60 * 1000; // refetch at most every 30 minutes
+
 const MANAGED_STORAGE_KEYS = [
   SESSION_KEY, PROFILE_KEY, PROGRESS_KEY, PENDING_QUESTION_KEY,
-  BEGINNER_MODE_KEY, STORAGE_STAMP_KEY, PRACTICE_KEY, LESSONS_KEY,
+  "mm_beginner_mode", STORAGE_STAMP_KEY, PRACTICE_KEY, LESSONS_KEY,
   MARKET_RUN_STATE_KEY, MARKET_RUN_BEST_KEY,
-  PULSE_OPENED_KEY, MARKET_DECODER_KEY, "mm_market_pulse_popups",
+  PULSE_OPENED_KEY, "mm_market_pulse_popups",
   "mm_chats_v1", "mm_quiz_history", "mm_run_history",
   "mm_wizard_result", "mm_where_quiz_result", "mm_buy_quiz_result",
+  "mm_fab_pos_pulse", "mm_fab_pos_chat", "mm_live_news_cache",
   "mm_watchlist", "mm_run_best_v2", "mm_pulse_toast_seen", "mm_market_run_v2"
 ];
 
@@ -164,6 +171,31 @@ function syncProfileToN8n(profile) {
   });
 }
 
+// Best-effort delete: wipes local data immediately, and asks the backend to
+// remove the synced row. Remote deletion is NOT guaranteed - it only works if
+// the n8n workflow has a matching delete branch (see IMPLEMENTATION_STATUS.md).
+function deleteProfileAndData() {
+  if (!window.confirm("Delete your profile and all learning data on this device? This also asks the backend to delete your synced profile. This cannot be undone.")) return;
+  const sessionId = getProfile().sessionId;
+  if (PROFILE_WEBHOOK_URL && sessionId) {
+    try {
+      fetch(PROFILE_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete_profile", session_id: sessionId }),
+        keepalive: true
+      }).catch(() => {});
+    } catch {}
+  }
+  try {
+    MANAGED_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+    localStorage.removeItem(PROFILE_KEY);
+    localStorage.removeItem(SESSION_KEY);
+  } catch {}
+  showToast("Profile and local data deleted.");
+  setTimeout(() => { location.href = "index.html"; }, 900);
+}
+
 function updateProfileUi(profile = getProfile()) {
   const displayName = profile.nickname?.trim() || "Guest";
   const setText = (id, text) => {
@@ -184,25 +216,6 @@ function updateProfileUi(profile = getProfile()) {
   });
   document.querySelectorAll("[data-profile-initial]").forEach((el) => {
     el.textContent = displayName.slice(0, 1).toUpperCase() || "G";
-  });
-}
-
-/* ---------- beginner mode ---------- */
-function isBeginnerMode() {
-  return localStorage.getItem(BEGINNER_MODE_KEY) !== "off";
-}
-
-function setBeginnerMode(enabled) {
-  localStorage.setItem(BEGINNER_MODE_KEY, enabled ? "on" : "off");
-  applyBeginnerMode();
-}
-
-function applyBeginnerMode() {
-  const enabled = isBeginnerMode();
-  document.body.classList.toggle("beginner-mode-on", enabled);
-  document.body.classList.toggle("beginner-mode-off", !enabled);
-  document.querySelectorAll("[data-beginner-mode-status]").forEach((el) => {
-    el.textContent = enabled ? "On" : "Off";
   });
 }
 
@@ -238,6 +251,33 @@ function setupNavigation() {
       <a href="smart-picks.html"><b>Build a portfolio</b><span>From your profile</span></a>
       <a href="learning-room.html"><b>Quiz &amp; reference</b><span>Quiz, videos, terms, guides</span></a>`;
     menu.appendChild(panel);
+
+    // Click/tap to open the Learn flyout instead of hover, so it stays put
+    // while the pointer moves down into the panel (fixes the disappearing menu).
+    const isDesktopNav = () => window.matchMedia("(min-width:821px)").matches;
+    const closeMenu = () => {
+      menu.classList.remove("open");
+      learnLink.setAttribute("aria-expanded", "false");
+    };
+    learnLink.setAttribute("aria-expanded", "false");
+    learnLink.addEventListener("click", (event) => {
+      // On desktop the top link acts as a menu toggle; use "Extra Info" inside
+      // the panel to go to the Learn page. On mobile it navigates normally.
+      if (!isDesktopNav()) return;
+      event.preventDefault();
+      const open = menu.classList.toggle("open");
+      learnLink.setAttribute("aria-expanded", String(open));
+    });
+    document.addEventListener("click", (event) => {
+      if (menu.classList.contains("open") && !menu.contains(event.target)) closeMenu();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && menu.classList.contains("open")) {
+        closeMenu();
+        learnLink.focus();
+      }
+    });
+    panel.querySelectorAll("a").forEach((a) => a.addEventListener("click", closeMenu));
   }
 
   const navToggle = document.getElementById("navToggle");
@@ -509,16 +549,15 @@ function setupProfilePage() {
       startGuest.addEventListener("click", () => {
         const profile = saveProfile({ ...profileFromForm("guest"), nickname: "Guest", profileMode: "guest" });
         fillProfileForm(profile);
-        showProfileSuccess("Continuing as Guest. Your progress is still saved in this browser.");
+        showProfileSuccess("Continuing as Guest. Your progress is saved on this device, and a guest profile is also synced to the backend.");
         renderProfileProgress();
       });
     }
   }
 
-  const beginnerToggle = document.getElementById("beginnerModeToggle");
-  if (beginnerToggle) {
-    beginnerToggle.checked = isBeginnerMode();
-    beginnerToggle.addEventListener("change", () => setBeginnerMode(beginnerToggle.checked));
+  const deleteBtn = document.getElementById("deleteProfile");
+  if (deleteBtn) {
+    deleteBtn.addEventListener("click", deleteProfileAndData);
   }
 
   const resetLearning = document.getElementById("resetLearning");
@@ -962,16 +1001,28 @@ function markAlertOpened(id) {
 function renderNewsDetail(id) {
   const detail = document.getElementById("newsDetail");
   if (!detail) return;
-  const alert = MARKET_ALERTS.find((item) => item.id === id) || MARKET_ALERTS[0];
+  const alert = getNewsItems().find((item) => item.id === id) || getNewsItems()[0];
+  activeNewsId = alert.id;
   const affected = alert.affected || ["Beginner investors"];
   const sourceHref = alert.sourceUrl || alert.source?.href || "market.html";
   const sourceName = alert.sourceName || alert.source?.name || "Educational source";
+  const whenText = alert.live
+    ? `${alert.published || "Just now"}${alert.stamp ? " (" + alert.stamp + ")" : ""}`
+    : "Educational example &middot; reviewed Jul 2026";
+  const kindTag = alert.live
+    ? `<span class="news-meta-tag live">Live</span>`
+    : `<span class="news-meta-tag">Teaching example</span>`;
   detail.innerHTML = `
+    <div class="news-meta-top">${kindTag}</div>
     <h3>${alert.title}</h3>
+    <div class="news-meta">
+      <span class="news-meta-item"><b>When</b>${whenText}</span>
+      <span class="news-meta-item"><b>Where</b><a href="${sourceHref}" target="_blank" rel="noopener">${sourceName}</a></span>
+    </div>
     <div class="pill-row">${affected.map((item) => `<span class="pill">${item}</span>`).join("")}</div>
     <div class="news-takeaway">
       <p><b>Plain English:</b> ${alert.beginner}</p>
-      <p><b>Why it matters:</b> ${alert.why}</p>
+      <p><b>Why this may affect you:</b> ${alert.why}</p>
     </div>
     <details class="market-explainer" open>
       <summary>What happened</summary>
@@ -983,8 +1034,7 @@ function renderNewsDetail(id) {
     </details>
     <div class="news-foot">
       <span class="source-label">Source: <a href="${sourceHref}" target="_blank" rel="noopener">${sourceName}</a></span>
-      <span class="source-label">Educational example &middot; reviewed Jul 2026</span>
-      <button class="btn btn-ghost btn-sm prompt-ai" type="button" data-question="Explain this Market School event for a beginner in Singapore: ${alert.title}. ${alert.short} What should I understand, what risks matter, and what mistake should I avoid?">Ask Bot</button>
+      <button class="btn btn-ghost btn-sm prompt-ai" type="button" data-question="Explain this market news for a beginner in Singapore: ${alert.title}. ${alert.short} When did it happen, who reported it, what should I understand, what risks matter, and what mistake should I avoid?">Ask Bot</button>
     </div>`;
   detail.querySelector(".prompt-ai")?.addEventListener("click", (e) => openChatWithQuestion(e.currentTarget.dataset.question, { mode: "widget" }));
 }
@@ -993,9 +1043,9 @@ function renderNewsList(activeId) {
   const list = document.getElementById("newsList");
   if (!list) return;
   const opened = getOpenedAlerts();
-  list.innerHTML = MARKET_ALERTS.map((alert) => `
+  list.innerHTML = getNewsItems().map((alert) => `
     <button class="news-item ${opened.includes(alert.id) ? "opened" : ""} ${alert.id === activeId ? "active" : ""}" type="button" data-alert-id="${alert.id}" ${alert.id === activeId ? 'aria-current="true"' : ""}>
-      <span class="news-status">${opened.includes(alert.id) ? "Read" : "New"}</span>
+      <span class="news-status">${alert.live ? "Live" : (opened.includes(alert.id) ? "Read" : "New")}</span>
       <span class="news-tag">${alert.label}</span>
       <strong>${alert.title}</strong>
       <small>${alert.short}</small>
@@ -1014,177 +1064,123 @@ function renderNewsList(activeId) {
   });
 }
 
+/* Live news state + Alpha Vantage fetch.
+   LIVE_NEWS is prepended to the educational examples; if the API is
+   unavailable (offline, rate limit, CORS) the samples still show. */
+let LIVE_NEWS = [];
+let activeNewsId = null;
+
+function getNewsItems() {
+  return [...LIVE_NEWS, ...MARKET_ALERTS];
+}
+
+function timeAgoFromAV(av) {
+  // Alpha Vantage timestamp format: 20260712T093000
+  if (!av || av.length < 13) return "";
+  const iso = `${av.slice(0, 4)}-${av.slice(4, 6)}-${av.slice(6, 8)}T${av.slice(9, 11)}:${av.slice(11, 13)}:00`;
+  const then = new Date(iso).getTime();
+  if (!then) return "";
+  const mins = Math.max(1, Math.round((Date.now() - then) / 60000));
+  if (mins < 60) return `${mins} min ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs} hr${hrs > 1 ? "s" : ""} ago`;
+  const days = Math.round(hrs / 24);
+  return `${days} day${days > 1 ? "s" : ""} ago`;
+}
+
+function formatAVDate(av) {
+  // Alpha Vantage timestamp format: 20260712T093000 -> "12 Jul 2026, 9:30am"
+  if (!av || av.length < 13) return "";
+  const iso = `${av.slice(0, 4)}-${av.slice(4, 6)}-${av.slice(6, 8)}T${av.slice(9, 11)}:${av.slice(11, 13)}:00`;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  try {
+    return d.toLocaleString("en-SG", {
+      day: "numeric", month: "short", year: "numeric",
+      hour: "numeric", minute: "2-digit", hour12: true
+    });
+  } catch { return iso.replace("T", " "); }
+}
+
+function sentimentPlain(label) {
+  const l = (label || "").toLowerCase();
+  if (l.includes("bullish")) return "Coverage leans positive - but optimism is not a guarantee. Check why before acting.";
+  if (l.includes("bearish")) return "Coverage leans negative - a gloomy headline is not a reason to abandon a long-term plan.";
+  return "Coverage is broadly neutral. Read it as context, not a buy or sell signal.";
+}
+
+function escapeHtml(str) {
+  return String(str || "").replace(/[&<>"']/g, (c) => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+  ));
+}
+
+function mapLiveArticle(a, i) {
+  const tickers = (a.ticker_sentiment || []).slice(0, 4).map((t) => escapeHtml(t.ticker)).filter(Boolean);
+  const summary = escapeHtml((a.summary || "").trim());
+  const title = escapeHtml(a.title || "Market update");
+  let url = String(a.url || "market.html");
+  if (!/^https?:\/\//i.test(url)) url = "market.html";
+  const affectsLine = tickers.length
+    ? `It centres on ${tickers.join(", ")} - names that can sit inside the global and US ETFs many Singapore beginners hold, so a move here can nudge those funds.`
+    : "It reflects the broad market mood, which can move the diversified ETFs many beginners own.";
+  return {
+    id: "live-" + i,
+    live: true,
+    label: "Live news",
+    title,
+    short: summary.length > 140 ? summary.slice(0, 137) + "..." : (summary || "Tap to read the latest market headline."),
+    happened: summary || "Open the source link for the full report.",
+    beginner: "This is a real, recent headline. One news item is context, not a reason to trade - zoom out to your own time horizon.",
+    why: `${sentimentPlain(a.overall_sentiment_label)} ${affectsLine}`,
+    riskContext: "News moves prices in the short term. The beginner risk is reacting to a single headline instead of sticking to a plan.",
+    affected: tickers.length ? tickers : ["Global markets"],
+    sourceName: escapeHtml(a.source || "Alpha Vantage"),
+    sourceUrl: encodeURI(url).replace(/"/g, "%22"),
+    stamp: timeAgoFromAV(a.time_published),
+    published: formatAVDate(a.time_published)
+  };
+}
+
+async function fetchLiveNews() {
+  // Serve fresh cache first to protect the free-tier daily limit.
+  const cached = readJson(LIVE_NEWS_CACHE_KEY, null);
+  if (cached && Array.isArray(cached.items) && Date.now() - cached.at < LIVE_NEWS_TTL_MS) {
+    return cached.items;
+  }
+  const url = `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&topics=financial_markets,economy_macro,finance&sort=LATEST&limit=12&apikey=${ALPHA_VANTAGE_KEY}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("news http " + res.status);
+  const data = await res.json();
+  if (!data || !Array.isArray(data.feed) || !data.feed.length) {
+    // Rate-limit / informational responses carry Note/Information instead of a feed.
+    throw new Error((data && (data.Note || data.Information || data["Error Message"])) || "no feed");
+  }
+  const items = data.feed.slice(0, 8).map(mapLiveArticle);
+  try { localStorage.setItem(LIVE_NEWS_CACHE_KEY, JSON.stringify({ at: Date.now(), items })); } catch {}
+  return items;
+}
+
+async function loadLiveNews() {
+  const list = document.getElementById("newsList");
+  if (!list) return;
+  try {
+    const items = await fetchLiveNews();
+    if (!items.length) return;
+    LIVE_NEWS = items;
+    // Keep whatever the reader is currently viewing; just add live items on top.
+    renderNewsList(activeNewsId);
+  } catch (err) {
+    console.warn("Live news unavailable, showing educational examples:", err.message);
+  }
+}
+
 function setupMarketNews() {
   if (!document.getElementById("newsList")) return;
-  const firstUnread = MARKET_ALERTS.find((alert) => !getOpenedAlerts().includes(alert.id)) || MARKET_ALERTS[0];
+  const firstUnread = getNewsItems().find((alert) => !getOpenedAlerts().includes(alert.id)) || getNewsItems()[0];
   renderNewsList(firstUnread.id);
   renderNewsDetail(firstUnread.id);
-}
-
-/* ---------- live market news + decoder ---------- */
-const MARKET_DECODER_PATTERNS = [
-  {
-    id: "rate-news",
-    label: "Rate news",
-    title: "Bank stocks move after rate news",
-    short: "DBS, OCBC, and UOB can move when interest-rate expectations change.",
-    chips: ["Banks", "STI ETF"],
-    happened: "Interest-rate expectations affect bank lending margins, deposit costs, loan demand, and investor appetite for dividends.",
-    plain: "A rate headline does not automatically mean bank shares should jump or fall. It changes what investors expect banks to earn next.",
-    why: "The three local banks are a large slice of the STI, so rate news can move an STI ETF even if you never buy a bank stock directly.",
-    risk: "Single bank shares carry company risk. A broad ETF spreads risk, but it still moves when a large sector moves.",
-    sourceName: "The Business Times markets",
-    sourceUrl: "https://www.businesstimes.com.sg/markets"
-  },
-  {
-    id: "reits-borrowing-costs",
-    label: "Sector pattern",
-    title: "REITs react to borrowing costs",
-    short: "REIT prices can move when investors expect higher or lower interest rates.",
-    chips: ["REITs", "Income"],
-    happened: "Many REITs use debt to own and manage property. Higher borrowing costs can pressure distributions and make high-yield assets less attractive.",
-    plain: "A REIT price fall is not always a broken business. Sometimes investors are repricing the cost of debt and the income they require.",
-    why: "REITs are popular with young Singapore investors for payouts. Understanding the rate link stops you treating yield as free money.",
-    risk: "A high yield can signal higher risk. Check gearing, occupancy, debt maturity, and whether distributions look sustainable.",
-    sourceName: "Reuters markets",
-    sourceUrl: "https://www.reuters.com/markets/"
-  },
-  {
-    id: "global-shock",
-    label: "Global shock",
-    title: "Global sell-offs spill into Asia",
-    short: "US and China headlines can affect Singapore shares even when the company itself did nothing wrong.",
-    chips: ["STI ETF", "Global ETFs"],
-    happened: "Singapore is an open market. Global risk-off moves can affect banks, tech-linked names, REITs, and broad ETFs through sentiment and fund flows.",
-    plain: "When markets fall together, focus on your time horizon and diversification. Broad weakness is different from a company-specific problem.",
-    why: "Your first market drop can feel personal. Knowing the difference between a global wobble and a real problem helps prevent panic-selling.",
-    risk: "Short-term drops are normal. The real mistake is selling low only because a scary headline appeared.",
-    sourceName: "CNA Business",
-    sourceUrl: "https://www.channelnewsasia.com/business"
-  },
-  {
-    id: "earnings",
-    label: "Earnings",
-    title: "Earnings reports move single stocks hard",
-    short: "A company's quarterly results can move its share price sharply in one day - up or down.",
-    chips: ["Single stocks", "Blue chips"],
-    happened: "Every quarter, listed companies report profits. If results beat what investors expected, the price can jump; if they miss, it can fall fast.",
-    plain: "A stock falling after earnings does not automatically mean the company is dying, and a jump does not mean a sure win. The move is about expectations.",
-    why: "If you own a single stock like DBS or Singtel, earnings dates are when your money moves most. ETF holders feel it less because many other companies cushion the move.",
-    risk: "Single stocks carry event risk that diversified funds smooth out.",
-    sourceName: "SGX company announcements",
-    sourceUrl: "https://www.sgx.com/securities/company-announcements"
-  },
-  {
-    id: "scam-safety",
-    label: "Safety",
-    title: "Guaranteed return claims are a red flag",
-    short: "Any group promising high returns with no risk should be treated as suspicious.",
-    chips: ["Scams", "Safety"],
-    happened: "Scam messages often use urgency, fake testimonials, and guaranteed profits to pressure beginners into transferring money.",
-    plain: "Real investments have risk. If someone promises both high returns and no risk, pause and verify before giving money or personal details.",
-    why: "New investors are attractive targets. A quick check against official sources can protect your whole starting amount.",
-    risk: "If returns are guaranteed and high, the risk may be the whole amount. Real investments never promise both.",
-    sourceName: "MAS Investor Alert List",
-    sourceUrl: "https://www.mas.gov.sg/investor-alert-list"
-  }
-];
-
-function getDecodedMarketPatterns() {
-  const decoded = readJson(MARKET_DECODER_KEY, []);
-  return Array.isArray(decoded) ? decoded : [];
-}
-
-function saveDecodedMarketPatterns(ids) {
-  try { localStorage.setItem(MARKET_DECODER_KEY, JSON.stringify([...new Set(ids)])); } catch {}
-}
-
-function setupLiveMarketNews() {
-  const askButton = document.getElementById("liveNewsAskBot");
-  if (!askButton) return;
-  askButton.addEventListener("click", () => {
-    openChatWithQuestion(askButton.dataset.question || "", { mode: "widget" });
-  });
-}
-
-function setupMarketDecoder() {
-  const list = document.getElementById("marketDecoderList");
-  const detail = document.getElementById("marketDecoderDetail");
-  if (!list || !detail) return;
-
-  let activeId = MARKET_DECODER_PATTERNS[0].id;
-  let awardedId = "";
-
-  function render() {
-    const decoded = getDecodedMarketPatterns();
-    const active = MARKET_DECODER_PATTERNS.find((item) => item.id === activeId) || MARKET_DECODER_PATTERNS[0];
-    const total = document.getElementById("decoderXpTotal");
-    if (total) total.textContent = `${decoded.length * 15} XP decoded`;
-
-    list.innerHTML = MARKET_DECODER_PATTERNS.map((item) => {
-      const isActive = item.id === active.id;
-      const isDecoded = decoded.includes(item.id);
-      const status = awardedId === item.id ? "+15 XP" : (isDecoded ? "Decoded" : "Decode");
-      return `
-        <button class="decoder-card ${isActive ? "active" : ""} ${isDecoded ? "decoded" : ""}" type="button" data-decoder-id="${item.id}" ${isActive ? 'aria-current="true"' : ""}>
-          <span class="decoder-card-status">${status}</span>
-          <span class="decoder-card-label">${item.label}</span>
-          <strong>${item.title}</strong>
-          <small>${item.short}</small>
-        </button>`;
-    }).join("");
-
-    const decodedState = decoded.includes(active.id);
-    const statusLabel = awardedId === active.id ? "+15 XP" : (decodedState ? "Decoded" : "Decode this pattern");
-    detail.innerHTML = `
-      <div class="decoder-detail-top">
-        <h3>${active.title}</h3>
-        <span class="decoder-earned ${awardedId === active.id ? "fresh" : ""}">${statusLabel}</span>
-      </div>
-      <div class="pill-row">${active.chips.map((chip) => `<span class="pill">${chip}</span>`).join("")}</div>
-      <div class="news-block">
-        <h4>What happens</h4>
-        <p>${active.happened}</p>
-      </div>
-      <div class="news-block">
-        <h4>In plain English</h4>
-        <p>${active.plain}</p>
-      </div>
-      <div class="news-block">
-        <h4>Why this matters to you</h4>
-        <p>${active.why}</p>
-      </div>
-      <div class="news-block">
-        <h4>Risk context</h4>
-        <p>${active.risk}</p>
-      </div>
-      <div class="news-foot">
-        <span class="source-label">Where to watch this: <a href="${active.sourceUrl}" target="_blank" rel="noopener">${active.sourceName}</a></span>
-        <button class="btn btn-ghost btn-sm decoder-ask" type="button" data-question="Explain this market news pattern for a beginner in Singapore: ${active.title}. What happened, why prices may move, what risk matters, and what mistake should I avoid?">Ask Bot</button>
-      </div>`;
-
-    list.querySelectorAll(".decoder-card").forEach((button) => {
-      button.addEventListener("click", () => {
-        activeId = button.dataset.decoderId;
-        const currentDecoded = getDecodedMarketPatterns();
-        if (!currentDecoded.includes(activeId)) {
-          saveDecodedMarketPatterns([...currentDecoded, activeId]);
-          awardedId = activeId;
-          const item = MARKET_DECODER_PATTERNS.find((pattern) => pattern.id === activeId);
-          showToast(`+15 XP earned: ${item?.label || "pattern"} decoded.`);
-        } else {
-          awardedId = "";
-        }
-        render();
-      });
-    });
-
-    detail.querySelector(".decoder-ask")?.addEventListener("click", (event) => {
-      openChatWithQuestion(event.currentTarget.dataset.question || "", { mode: "widget" });
-    });
-  }
-
-  render();
+  loadLiveNews();
 }
 
 /* ---------- chat (n8n) ---------- */
@@ -1232,7 +1228,6 @@ function getChatMetadata() {
     sessionId: profile.sessionId,
     currentPage: location.pathname.split("/").pop() || "index.html",
     profile,
-    beginnerMode: isBeginnerMode(),
     quizProgress: getProgress(),
     watchlist: readJson("mm_watchlist", []),
     whereQuiz: readJson("mm_where_quiz_result", null),
@@ -1412,6 +1407,14 @@ function loadChatWidget() {
       });
       const pending = localStorage.getItem(PENDING_QUESTION_KEY);
       if (pending && document.body.dataset.page === "market") setTimeout(() => prefillChatInput(pending), 500);
+      // The chat launcher is rendered by the @n8n/chat library after mount;
+      // poll briefly, then make it draggable so it never blocks the bottom nav.
+      let tries = 0;
+      const wire = setInterval(() => {
+        const toggle = document.querySelector(".chat-window-toggle, [class*='chat-window-toggle']");
+        if (toggle) { makeFabDraggable(toggle, "mm_fab_pos_chat", "right"); clearInterval(wire); }
+        if (++tries > 40) clearInterval(wire);
+      }, 250);
     })
     .catch(() => {
       console.warn("Chat widget could not load.");
@@ -1905,7 +1908,7 @@ function setupWatchlist() {
   const render = () => {
     const list = getWatchlist();
     mount.innerHTML = `
-      <h3 style="margin-bottom:6px">Your watchlist <span class="pill" style="font-size:.6rem;vertical-align:middle">Private to this browser</span></h3>
+      <h3 style="margin-bottom:6px">Your watchlist <span class="pill" style="font-size:.6rem;vertical-align:middle">Saved on this device</span></h3>
       <p style="color:var(--muted);margin-bottom:10px">Use this as a learning list, not a buy list. Save names you want to understand, then ask the bot to explain the risk before you touch real money.</p>
       <div class="watch-chips">${WATCHABLE.map((w) => `<button type="button" class="watch-chip ${list.includes(w) ? "on" : ""}" data-w="${w}">${list.includes(w) ? "✓ " : "+ "}${w}</button>`).join("")}</div>
       ${list.length ? `<div class="hero-cta" style="margin-top:12px">
@@ -1934,6 +1937,56 @@ function pulseUnreadCount() {
   return MARKET_ALERTS.filter((a) => !opened.includes(a.id)).length;
 }
 
+// Make a floating button draggable (mouse + touch) and remember where the user
+// put it. Also sets a sensible default above the mobile bottom nav so the
+// buttons never sit on top of the nav bar. A real drag swallows the click so
+// dragging doesn't accidentally open the panel.
+function makeFabDraggable(el, key, corner) {
+  if (!el || el.dataset.draggable) return;
+  el.dataset.draggable = "1";
+  el.style.touchAction = "none";
+  el.title = "Drag to move";
+  const SIZE = 54;
+  const NAV = 84; // clearance for the mobile bottom nav
+  const applyPos = (x, y) => {
+    const cx = Math.max(6, Math.min(window.innerWidth - SIZE, x));
+    const cy = Math.max(60, Math.min(window.innerHeight - SIZE, y));
+    el.style.position = "fixed";
+    el.style.left = cx + "px";
+    el.style.top = cy + "px";
+    el.style.right = "auto";
+    el.style.bottom = "auto";
+  };
+  const saved = readJson(key, null);
+  if (saved && typeof saved.x === "number") {
+    applyPos(saved.x, saved.y);
+  } else if (window.matchMedia("(max-width:820px)").matches) {
+    applyPos(corner === "left" ? 14 : window.innerWidth - SIZE - 14, window.innerHeight - SIZE - NAV);
+  }
+  let sx, sy, ox, oy, moved = false;
+  const swallow = (ev) => { ev.stopPropagation(); ev.preventDefault(); el.removeEventListener("click", swallow, true); };
+  const move = (e) => {
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) moved = true;
+    if (moved) { e.preventDefault(); applyPos(ox + dx, oy + dy); }
+  };
+  const up = () => {
+    document.removeEventListener("pointermove", move);
+    document.removeEventListener("pointerup", up);
+    if (moved) {
+      const r = el.getBoundingClientRect();
+      try { localStorage.setItem(key, JSON.stringify({ x: r.left, y: r.top })); } catch {}
+      el.addEventListener("click", swallow, true);
+    }
+  };
+  el.addEventListener("pointerdown", (e) => {
+    const r = el.getBoundingClientRect();
+    ox = r.left; oy = r.top; sx = e.clientX; sy = e.clientY; moved = false;
+    document.addEventListener("pointermove", move);
+    document.addEventListener("pointerup", up);
+  });
+}
+
 function setupPulseSystem() {
   const page = document.body.dataset.page;
   if (page === "chat" || page === "practice" || document.getElementById("pulsePageGrid")) return; // keep the game + chat immersive
@@ -1944,6 +1997,7 @@ function setupPulseSystem() {
   fab.setAttribute("aria-label", "Open Market Pulse");
   fab.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span class="pulse-count" id="pulseCount"></span>`;
   document.body.appendChild(fab);
+  makeFabDraggable(fab, "mm_fab_pos_pulse", "left");
 
   // Sidebar
   const backdrop = document.createElement("div");
@@ -2018,13 +2072,8 @@ function setupPulsePage() {
 }
 
 function setupMarketLabels() {
-  const list = document.getElementById("newsList");
-  if (!list) return;
-  const banner = document.createElement("div");
-  banner.className = "callout callout-warn";
-  banner.style.margin = "0 0 18px";
-  banner.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span><b>Sample educational updates, not live news.</b> These explain how common market events work. For today\u2019s actual news, use the linked sources or the live STI chart above.</span>';
-  list.parentNode.insertBefore(banner, list);
+  // Live headlines now load at the top of the list, so the old
+  // "sample updates, not live news" banner is no longer shown.
 }
 
 /* ---------- profile evidence export ---------- */
@@ -2066,15 +2115,12 @@ function setupAnchorScroll() {
 /* ---------- boot ---------- */
 setupNavigation();
 updateProfileUi();
-applyBeginnerMode();
 setupSelfTests();
 setupHomeDashboard();
 setupProfilePage();
 setupGlossary();
 setupQuiz();
 setupMarketNews();
-setupLiveMarketNews();
-setupMarketDecoder();
 setupChatTriggers();
 loadChatWidget();
 setupWhereQuiz();
