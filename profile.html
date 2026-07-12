@@ -121,6 +121,120 @@
           <button class="btn btn-ghost" type="button" id="startGuest">Continue as Guest</button>
         </div>
       </form>
+
+      <section class="feedback-section" aria-labelledby="feedbackHeading">
+        <div class="feedback-card-intro">
+          <h3 id="feedbackHeading">Tell us how MoneyMentor feels</h3>
+          <p>Your responses help us improve the experience for first-time investors. This short survey is stored on this device.</p>
+        </div>
+        <form class="feedback-form" id="feedbackForm">
+          <div class="field">
+            <label for="feedbackAgeGroup">1. What is your age group?</label>
+            <div class="feedback-options">
+              <label class="feedback-option"><input type="radio" name="ageGroup" value="Below 18"><span>Below 18</span></label>
+              <label class="feedback-option"><input type="radio" name="ageGroup" value="18-20"><span>18&ndash;20</span></label>
+              <label class="feedback-option"><input type="radio" name="ageGroup" value="21-25"><span>21&ndash;25</span></label>
+              <label class="feedback-option"><input type="radio" name="ageGroup" value="Above 25"><span>Above 25</span></label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>2. How familiar are you with investing?</label>
+            <div class="feedback-options">
+              <label class="feedback-option"><input type="radio" name="investmentFamiliarity" value="Not familiar at all"><span>Not familiar at all</span></label>
+              <label class="feedback-option"><input type="radio" name="investmentFamiliarity" value="Beginner"><span>Beginner</span></label>
+              <label class="feedback-option"><input type="radio" name="investmentFamiliarity" value="Some knowledge"><span>Some knowledge</span></label>
+              <label class="feedback-option"><input type="radio" name="investmentFamiliarity" value="Experienced"><span>Experienced</span></label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>3. Was it clear what MoneyMentor is designed to do?</label>
+            <div class="feedback-scale" role="radiogroup" aria-label="Was it clear what MoneyMentor is designed to do?">
+              <label class="feedback-scale-option"><input type="radio" name="purposeClear" value="1"><span>1</span></label>
+              <label class="feedback-scale-option"><input type="radio" name="purposeClear" value="2"><span>2</span></label>
+              <label class="feedback-scale-option"><input type="radio" name="purposeClear" value="3"><span>3</span></label>
+              <label class="feedback-scale-option"><input type="radio" name="purposeClear" value="4"><span>4</span></label>
+              <label class="feedback-scale-option"><input type="radio" name="purposeClear" value="5"><span>5</span></label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>4. Was the website easy to navigate?</label>
+            <div class="feedback-scale" role="radiogroup" aria-label="Was the website easy to navigate?">
+              <label class="feedback-scale-option"><input type="radio" name="easyNavigate" value="1"><span>1</span></label>
+              <label class="feedback-scale-option"><input type="radio" name="easyNavigate" value="2"><span>2</span></label>
+              <label class="feedback-scale-option"><input type="radio" name="easyNavigate" value="3"><span>3</span></label>
+              <label class="feedback-scale-option"><input type="radio" name="easyNavigate" value="4"><span>4</span></label>
+              <label class="feedback-scale-option"><input type="radio" name="easyNavigate" value="5"><span>5</span></label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>5. Did the AI responses feel easy to understand?</label>
+            <div class="feedback-scale" role="radiogroup" aria-label="Did the AI responses feel easy to understand?">
+              <label class="feedback-scale-option"><input type="radio" name="aiEasyUnderstand" value="1"><span>1</span></label>
+              <label class="feedback-scale-option"><input type="radio" name="aiEasyUnderstand" value="2"><span>2</span></label>
+              <label class="feedback-scale-option"><input type="radio" name="aiEasyUnderstand" value="3"><span>3</span></label>
+              <label class="feedback-scale-option"><input type="radio" name="aiEasyUnderstand" value="4"><span>4</span></label>
+              <label class="feedback-scale-option"><input type="radio" name="aiEasyUnderstand" value="5"><span>5</span></label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>6. Did the sources and risk warnings make the AI feel more trustworthy?</label>
+            <div class="feedback-scale" role="radiogroup" aria-label="Did the sources and risk warnings make the AI feel more trustworthy?">
+              <label class="feedback-scale-option"><input type="radio" name="trustworthySources" value="1"><span>1</span></label>
+              <label class="feedback-scale-option"><input type="radio" name="trustworthySources" value="2"><span>2</span></label>
+              <label class="feedback-scale-option"><input type="radio" name="trustworthySources" value="3"><span>3</span></label>
+              <label class="feedback-scale-option"><input type="radio" name="trustworthySources" value="4"><span>4</span></label>
+              <label class="feedback-scale-option"><input type="radio" name="trustworthySources" value="5"><span>5</span></label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="feedbackMostUseful">7. Which feature was most useful?</label>
+            <select id="feedbackMostUseful" name="mostUsefulFeature">
+              <option value="">Choose one</option>
+              <option value="Learn">Learn</option>
+              <option value="Ask MoneyMentor">Ask MoneyMentor</option>
+              <option value="Practice Lab">Practice Lab</option>
+              <option value="Market">Market</option>
+              <option value="Profile">Profile</option>
+              <option value="Scam awareness">Scam awareness</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>8. Would you use MoneyMentor before making your first investment?</label>
+            <div class="feedback-options">
+              <label class="feedback-option"><input type="radio" name="useBeforeFirstInvestment" value="Yes"><span>Yes</span></label>
+              <label class="feedback-option"><input type="radio" name="useBeforeFirstInvestment" value="Maybe"><span>Maybe</span></label>
+              <label class="feedback-option"><input type="radio" name="useBeforeFirstInvestment" value="No"><span>No</span></label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="feedbackLikedMost">9. What did you like most about MoneyMentor?</label>
+            <textarea id="feedbackLikedMost" name="likedMost" class="feedback-textarea" placeholder="Share what stood out to you."></textarea>
+          </div>
+
+          <div class="field">
+            <label for="feedbackConfusing">10. What was confusing or difficult to use?</label>
+            <textarea id="feedbackConfusing" name="confusing" class="feedback-textarea" placeholder="Tell us what felt unclear or frustrating."></textarea>
+          </div>
+
+          <div class="field">
+            <label for="feedbackImprovement">11. What is one improvement you would suggest?</label>
+            <textarea id="feedbackImprovement" name="improvement" class="feedback-textarea" placeholder="Share one practical improvement."></textarea>
+          </div>
+
+          <div class="profile-success" id="feedbackSuccess" role="status">Thanks for helping us improve MoneyMentor.</div>
+          <div class="hero-cta">
+            <button class="btn btn-primary" type="submit">Send feedback</button>
+          </div>
+        </form>
+      </section>
     </article>
 
     <div style="display:grid;gap:20px;align-content:start">
